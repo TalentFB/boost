@@ -49,7 +49,8 @@ How to read this file:
 **Open items** (also marked where they occur):
 
 - Open (D40): whether a role open today on the company's own careers page only counts as verified with fewer than 3 sources [Rec: keep the 3 source minimum; show these to Fred as "Company site only"].
-- Open (D41): whether the client also gets a PDF download from BOOST. This file shows the PDF download [Rec: yes, for sharing].
+- D41 (PDF): the client also gets a PDF download from the app, decided by Fred on 14 Oct 2026.
+- Open (D41, Drive layout): the folder structure in TalentFB's Drive at scale and how clients are given access. Quotas are not the constraint; sharing, deletion and Shared Drive setup are (05 D41).
 - Open (PRD gap 3): a job the client pastes stays hidden until `live-check` verifies it; may the client still ask for a pack?
 - Open (04 F1): consent captured at purchase in GoHighLevel or in BOOST [Rec: first panel of `/profile/my-story/import` when clients.consent_at is empty].
 - Open (L30): packs prepared each day before the first 10 clean applications [Rec: up to 5]; whether the 10 must be consecutive.
@@ -302,7 +303,7 @@ Format: On [screen], user [action] -> [what happens] -> lands on [screen]. Lines
 7. Ready -> "Your Value Project is ready" email -> user opens the deck -> slide preview, each company statement with its source and date (G14), each claim about the client linked to its fact.
 8. User taps "Approve my Value Project" -> `approved`, linked into that company's approach plan -> stays. "Ask for changes" with a note -> a new version. "I do not need this one" -> `withdrawn`.
 9. After approval, user taps "Open in Google Slides" -> the deck opens in a new tab from the client's folder, shared with them (D41). Edits made there stay in Google Slides and are not sent back to BOOST [Rec].
-10. After approval, user taps "Download my PDF" -> a signed link to the PDF exported from the deck -> the file downloads [Rec: yes, for sharing; open to confirm].
+10. After approval, user taps "Download my PDF" -> a signed link to the PDF exported from the deck -> the file downloads (D41).
 
 **J20. Export and deletion**
 1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` writes the R7 Google Sheet and shares it with the client -> stays, with "Open my tracker".
