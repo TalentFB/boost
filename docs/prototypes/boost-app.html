@@ -1,0 +1,844 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BOOST app prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#4A4760;--heading:#1E1846;--primary:#7660DF;--primary-hover:#5F49C9;--tint:#E9E5FB;--mist:#F3F1FD;
+  --muted:#66637C;--lavender:#B5A8ED;--neutral:#EEEDF3;--line:#E6E2F5;--line-strong:#8A85A6;
+  --alert:#E0567A;--alert-strong:#B4305A;--alert-tint:#FCEBF0;--success:#1C7A4E;--success-tint:#E6F5EC;
+  --shadow-1:0 1px 2px rgb(30 24 70 / .06),0 1px 1px rgb(30 24 70 / .04);--shadow-2:0 8px 24px rgb(30 24 70 / .12);--shadow-3:0 16px 48px rgb(30 24 70 / .18);
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:Inter,system-ui,sans-serif;color:var(--ink);background:#fff;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;display:flex;flex-direction:column;height:100dvh;overflow:hidden}
+button,input,textarea,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--primary-hover);outline-offset:2px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.num{font-variant-numeric:tabular-nums;font-weight:600}
+h1{font-size:34px;line-height:1.15;font-weight:800;letter-spacing:-.015em;color:var(--heading);margin:0}
+h2{font-size:22px;line-height:1.2;font-weight:600;letter-spacing:-.01em;color:var(--heading);margin:0 0 12px}
+h3{font-size:18px;line-height:1.3;font-weight:600;color:var(--heading);margin:0}
+h4{font-size:16px;font-weight:600;color:var(--heading);margin:0}
+p{margin:0 0 10px}
+.eyebrow{font-size:13px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.helper{font-size:14px;color:var(--muted);margin:6px 0 0}
+.proto-note{flex:none;background:var(--alert-tint);border-left:4px solid var(--alert);color:var(--heading);font-size:13px;padding:5px 14px}
+
+/* Top bar */
+.top{flex:none;display:flex;align-items:center;gap:8px;height:64px;padding:0 16px;border-bottom:1px solid var(--line);background:#fff;position:relative;z-index:10}
+.brand{text-decoration:none;display:flex;align-items:center;gap:8px;font-weight:800;font-size:20px;color:var(--heading);letter-spacing:-.01em;margin-right:6px;white-space:nowrap}
+.brand .mark{width:30px;height:30px;border-radius:9px;background:var(--primary);color:#fff;display:grid;place-items:center;font-size:16px}
+.icon-btn{width:44px;height:44px;display:grid;place-items:center;border:0;background:transparent;border-radius:12px;cursor:pointer;color:var(--heading);flex:none}
+.icon-btn:hover{background:var(--mist)}
+.icon-btn[aria-pressed=true]{background:var(--tint);color:var(--primary-hover)}
+.tabs-top{display:flex;gap:2px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.tabs-top::-webkit-scrollbar{display:none}
+.tabs-top a{padding:8px 14px;border-radius:12px;color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;white-space:nowrap;min-height:40px;display:flex;align-items:center;gap:6px}
+.tabs-top a:hover{background:var(--mist);color:var(--heading)}
+.tabs-top a[aria-current=page]{background:var(--tint);color:var(--primary-hover)}
+.badge{background:var(--primary);color:#fff;border-radius:999px;font-size:12px;padding:0 7px;line-height:20px}
+.top-right{display:flex;align-items:center;gap:6px;flex:none}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;font-weight:600;white-space:nowrap;border:0}
+.pill-mid{background:var(--heading);color:#fff}
+.pill-tint{background:var(--tint);color:var(--primary-hover)}
+.avatar{width:36px;height:36px;border-radius:50%;background:var(--heading);color:#fff;display:grid;place-items:center;font-weight:700;font-size:14px;border:0;cursor:pointer}
+.settings-link{display:inline-flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;font-weight:600;font-size:15px;color:var(--ink);text-decoration:none;min-height:40px}
+.settings-link:hover{background:var(--mist)}
+.settings-link[aria-current=page]{background:var(--tint);color:var(--primary-hover)}
+.menu{position:absolute;right:16px;top:58px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-2);padding:6px;min-width:220px;display:none;z-index:20}
+.menu.open{display:block}
+.menu a,.menu button{display:block;width:100%;text-align:left;padding:10px 12px;border-radius:8px;border:0;background:none;color:var(--heading);text-decoration:none;font-size:15px;cursor:pointer}
+.menu a:hover,.menu button:hover{background:var(--mist)}
+.menu .who{padding:10px 12px;border-bottom:1px solid var(--line);margin-bottom:4px;font-size:14px}
+
+/* Search row */
+.searchrow{flex:none;padding:12px 24px;border-bottom:1px solid var(--line);background:#fff;display:flex;gap:10px;align-items:center;position:relative;z-index:5}
+.gsearch{flex:1;position:relative;max-width:880px}
+.gsearch input{width:100%;height:46px;border:1px solid var(--line-strong);border-radius:12px;padding:0 90px 0 44px;font-size:16px;background:#fff}
+.gsearch input:focus{outline:none;border:2px solid var(--primary-hover);padding-left:43px}
+.gsearch>svg{position:absolute;left:14px;top:13px;color:var(--muted)}
+.gsearch kbd{position:absolute;right:12px;top:11px;font-family:inherit;font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:6px;padding:1px 6px}
+.scope{height:46px;border:1px solid var(--line-strong);border-radius:12px;padding:0 12px;background:#fff;font-weight:600;color:var(--heading)}
+.sresults{position:absolute;left:0;right:0;top:52px;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow-2);padding:6px;display:none;max-height:60vh;overflow:auto}
+.sresults.open{display:block}
+.sresults .grp{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:8px 10px 4px}
+.sresults button{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:0;background:none;padding:8px 10px;border-radius:8px;cursor:pointer}
+.sresults button:hover,.sresults button.active{background:var(--mist)}
+.sresults small{display:block;color:var(--muted);font-size:13px}
+
+/* Body layout */
+.body{flex:1;display:flex;min-height:0}
+.main{flex:1;min-width:0;overflow-y:auto}
+.wrap{max-width:1200px;margin:0 auto;padding:28px 28px 72px}
+
+/* Gaya */
+.gaya-panel{width:380px;flex:none;border-right:1px solid var(--line);display:none;flex-direction:column;background:#fff;min-height:0}
+.app-gaya .gaya-panel{display:flex}
+.g-head{flex:none;display:flex;align-items:center;gap:10px;padding:12px 12px 12px 16px;border-bottom:1px solid var(--line)}
+.g-avatar{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.g-title{font-weight:600;color:var(--heading);line-height:1.2;flex:1}
+.g-title small{display:block;font-weight:400;font-size:13px;color:var(--muted)}
+.g-context{flex:none;margin:10px 16px 0}
+.g-body{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.msg{max-width:92%;font-size:15px;line-height:1.55}
+.msg.me{align-self:flex-end;background:var(--tint);color:var(--heading);padding:10px 14px;border-radius:16px 16px 4px 16px}
+.msg.bot{align-self:flex-start;background:#fff;border:1px solid var(--line);padding:12px 14px;border-radius:16px 16px 16px 4px}
+.msg.bot p{margin:0 0 8px}.msg.bot p:last-child{margin:0}
+.msg.bot ol,.msg.bot ul{margin:4px 0 8px;padding-left:20px}
+.opts{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.opt{border:1.5px solid var(--primary);color:var(--primary);background:#fff;border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;cursor:pointer;min-height:36px;text-align:left}
+.opt:hover{background:var(--tint);color:var(--primary-hover)}
+.draft{border:1px solid var(--line);background:var(--mist);border-radius:12px;padding:12px;margin-top:8px}
+.draft .txt{color:var(--heading);margin:6px 0 8px;white-space:pre-wrap}
+.starters{flex:none;display:flex;flex-direction:column;gap:6px;padding:0 16px 10px}
+.starters button{text-align:left;border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-size:14px;cursor:pointer;color:var(--heading)}
+.starters button:hover{background:var(--mist)}
+.g-foot{flex:none;border-top:1px solid var(--line);padding:12px 16px 14px}
+.composer{display:flex;gap:8px;align-items:flex-end;border:1px solid var(--line-strong);border-radius:16px;padding:6px 6px 6px 12px}
+.composer:focus-within{border:2px solid var(--primary-hover);padding:5px 5px 5px 11px}
+.composer textarea{flex:1;border:0;resize:none;outline:none;min-height:24px;max-height:120px;padding:6px 0;font-size:15px;background:transparent}
+.send{width:40px;height:40px;border-radius:50%;border:0;background:var(--primary);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none}
+.send[disabled]{background:var(--neutral);color:var(--line-strong);cursor:default}
+.g-note{font-size:13px;color:var(--muted);margin-top:8px;text-align:center}
+.typing{display:inline-flex;gap:4px}.typing i{width:6px;height:6px;border-radius:50%;background:var(--lavender);animation:b 1s infinite}
+.typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+@keyframes b{0%,100%{opacity:.3}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.typing i{animation:none}*{transition:none!important}}
+
+/* Shared components */
+.chip{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 11px;font-size:13px;font-weight:600;line-height:1.5;white-space:nowrap}
+.c-violet{background:var(--tint);color:var(--primary-hover)}.c-neutral{background:var(--neutral);color:var(--ink)}
+.c-mid{background:var(--heading);color:#fff}.c-success{background:var(--success-tint);color:var(--success)}
+.c-lav{background:var(--lavender);color:var(--heading)}.c-alert{background:var(--alert-tint);color:var(--alert-strong)}
+.c-primary{background:var(--primary);color:#fff}
+.chip button{border:0;background:none;cursor:pointer;padding:0;color:inherit;font-weight:700}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;font-weight:600;font-size:16px;padding:0 20px;min-height:44px;cursor:pointer;border:1.5px solid var(--primary);text-decoration:none;white-space:nowrap;background:#fff;color:var(--primary)}
+.btn:hover{background:var(--tint);color:var(--primary-hover)}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-hover);border-color:var(--primary-hover);color:#fff}
+.btn-ghost{border-color:transparent;background:transparent}.btn-ghost:hover{background:var(--mist)}
+.btn-sm{min-height:36px;font-size:14px;padding:0 14px}
+.btn[disabled]{background:var(--neutral);border-color:var(--neutral);color:var(--line-strong);cursor:not-allowed}
+.card{border:1px solid var(--line);border-radius:16px;background:#fff;padding:20px}
+.card.mist{background:var(--mist);border-color:transparent}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.grid2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.grid4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.split{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:24px;align-items:start}
+.page-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.sec{margin-top:32px}
+.tile{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;font-weight:700;color:#fff;flex:none;font-size:15px}
+.subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin:0 0 18px;overflow-x:auto}
+.subtabs button{border:0;background:none;padding:10px 14px;font-weight:600;font-size:15px;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;min-height:44px}
+.subtabs button[aria-selected=true]{color:var(--primary-hover);border-bottom-color:var(--primary-hover)}
+.subtabs .n{font-variant-numeric:tabular-nums;margin-left:4px;color:var(--muted);font-weight:600}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th{font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+td{padding:12px;border-bottom:1px solid var(--line);vertical-align:middle}
+tr.click{cursor:pointer}tr.click:hover td{background:var(--mist)}
+.tablewrap{border:1px solid var(--line);border-radius:16px;overflow:auto}
+.bar{height:8px;border-radius:99px;background:var(--neutral);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--primary)}
+.mist-bar{background:#fff}
+.stat{display:flex;flex-direction:column;gap:2px}
+.stat .v{font-size:32px;font-weight:700;color:var(--heading);font-variant-numeric:tabular-nums;line-height:1.1}
+.stat small{font-size:14px;color:var(--muted)}
+.field{width:100%;height:44px;border:1px solid var(--line-strong);border-radius:12px;padding:0 12px;background:#fff}
+.field:focus{outline:none;border:2px solid var(--primary-hover);padding:0 11px}
+textarea.field{height:auto;min-height:96px;padding:10px 12px;resize:vertical}
+label.lab{display:block;font-size:14px;font-weight:600;color:var(--heading);margin:12px 0 4px}
+.switch{position:relative;width:48px;height:28px;flex:none}
+.switch input{opacity:0;width:100%;height:100%;margin:0;cursor:pointer;position:absolute;z-index:1}
+.switch span{position:absolute;inset:0;border-radius:99px;background:var(--neutral);border:1px solid var(--line-strong);transition:.18s}
+.switch span::after{content:"";position:absolute;width:20px;height:20px;border-radius:50%;background:#fff;top:3px;left:3px;box-shadow:var(--shadow-1);transition:.18s}
+.switch input:checked+span{background:var(--primary-hover);border-color:var(--primary-hover)}
+.switch input:checked+span::after{left:23px}
+.seg{display:inline-flex;background:var(--neutral);border-radius:999px;padding:4px;gap:2px}
+.seg button{border:0;background:none;border-radius:999px;padding:6px 16px;font-weight:600;font-size:14px;cursor:pointer;min-height:36px;color:var(--ink)}
+.seg button[aria-pressed=true]{background:#fff;color:var(--primary-hover);box-shadow:var(--shadow-1)}
+.seg button[disabled]{color:var(--line-strong);cursor:not-allowed}
+.empty{text-align:center;padding:32px 16px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--heading);color:#fff;border-radius:12px;padding:12px 16px;box-shadow:var(--shadow-2);font-size:15px;z-index:50;opacity:0;transform:translateY(8px);transition:.24s;pointer-events:none;max-width:420px}
+.toast.show{opacity:1;transform:none}
+.drawer-scrim{position:fixed;inset:0;background:rgb(30 24 70 / .48);z-index:40;display:none}
+.drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,100%);background:#fff;z-index:41;box-shadow:var(--shadow-3);display:none;flex-direction:column;border-radius:20px 0 0 20px}
+.drawer.open,.drawer-scrim.open{display:flex}
+.drawer-head{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--line)}
+.drawer-body{flex:1;overflow:auto;padding:20px}
+.drawer-foot{border-top:1px solid var(--line);padding:14px 20px;display:flex;gap:10px;flex-wrap:wrap}
+
+/* Score ring */
+.ring{--v:80;width:56px;height:56px;border-radius:50%;background:conic-gradient(var(--primary-hover) calc(var(--v)*1%),var(--neutral) 0);display:grid;place-items:center;flex:none}
+.ring b{width:44px;height:44px;border-radius:50%;background:#fff;display:grid;place-items:center;font-size:16px;color:var(--heading);font-variant-numeric:tabular-nums}
+.reasons{list-style:none;padding:0;margin:8px 0 0;font-size:14px}
+.reasons li{display:flex;gap:8px;padding:2px 0}
+.reasons li svg{flex:none;margin-top:4px;color:var(--primary)}
+.reasons li.gap svg{color:var(--line-strong)}
+mark.must{background:var(--tint);color:var(--heading);font-weight:600;border-bottom:2px solid var(--primary-hover);padding:0 2px}
+mark.other{background:var(--mist);color:var(--ink);border-bottom:1px dotted var(--line-strong);padding:0 2px}
+
+/* Jobs */
+.filters{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}
+.fchip{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line-strong);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:600;background:#fff;cursor:pointer;color:var(--heading);min-height:36px}
+.fchip.on{background:var(--heading);border-color:var(--heading);color:#fff}
+.jobcard{display:flex;flex-direction:column;gap:10px}
+.jobcard .head{display:flex;gap:12px;align-items:flex-start}
+.jobcard .co{font-size:14px;color:var(--muted)}
+.jobcard .title{font-size:17px;font-weight:600;color:var(--heading);line-height:1.3}
+.jobcard .acts{display:flex;gap:8px;margin-top:auto;padding-top:6px;flex-wrap:wrap}
+.addjob{background:var(--mist);border:1.5px dashed var(--lavender);display:flex;flex-direction:column;gap:10px;justify-content:center}
+
+/* Pipeline */
+.board{display:grid;grid-template-columns:repeat(7,minmax(180px,1fr));gap:12px;overflow-x:auto;padding-bottom:8px}
+.col{background:var(--mist);border-radius:16px;padding:12px;min-height:240px}
+.col h4{display:flex;justify-content:space-between;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+.pcard{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px;font-size:14px}
+.pcard strong{color:var(--heading);display:block}
+.pcard small{color:var(--muted);display:block}
+
+/* Inbox */
+.inbox{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);border:1px solid var(--line);border-radius:16px;overflow:hidden;min-height:420px}
+.ilist{border-right:1px solid var(--line);overflow:auto}
+.ilist button{display:flex;gap:10px;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);background:#fff;padding:12px 14px;cursor:pointer}
+.ilist button:hover,.ilist button.active{background:var(--mist)}
+.ilist small{display:block;color:var(--muted);font-size:13px}
+.iview{padding:20px;background:#fff}
+
+/* Profile, research, settings */
+.fact{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-top:1px solid var(--line)}
+.fact:first-child{border-top:0}
+.fact .v{flex:1;color:var(--heading)}
+.fact small{display:block;color:var(--muted);font-size:13px}
+.steps{display:flex;gap:8px;flex-wrap:wrap}
+.step{flex:1;min-width:120px;border-radius:12px;padding:10px 12px;background:var(--neutral);font-size:14px}
+.step.done{background:var(--success-tint);color:var(--success)}
+.step.cur{background:var(--tint);color:var(--primary-hover)}
+.step b{display:block;font-size:12px;letter-spacing:.12em;text-transform:uppercase}
+.art{display:flex;gap:16px;align-items:flex-start;cursor:pointer;text-align:left;width:100%}
+.art .n{width:32px;height:32px;border-radius:50%;border:1px solid var(--line-strong);display:grid;place-items:center;font-weight:600;color:var(--heading);flex:none}
+.reader{max-width:720px}
+.reader p{font-size:18px;line-height:1.7;margin-bottom:16px}
+.setgrid{display:grid;grid-template-columns:240px minmax(0,1fr);gap:28px}
+.setnav button{display:flex;gap:10px;align-items:center;width:100%;text-align:left;border:0;background:none;padding:10px 12px;border-radius:12px;cursor:pointer;font-weight:600;color:var(--ink);min-height:44px}
+.setnav button:hover{background:var(--mist)}
+.setnav button[aria-current=true]{background:var(--tint);color:var(--primary-hover)}
+.setrow{display:flex;gap:16px;align-items:center;padding:16px 0;border-top:1px solid var(--line)}
+.setrow:first-of-type{border-top:0}
+.setrow{flex-wrap:wrap}.setrow .t{flex:1;min-width:220px}
+.setrow .t small{display:block;color:var(--muted);font-size:14px}
+.later{opacity:.75}
+
+/* Outreach */
+.slots{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.slot{border:1px solid var(--line);border-radius:16px;padding:14px;background:#fff;cursor:pointer;text-align:left;display:flex;flex-direction:column;gap:6px;min-height:124px}
+.slot[aria-pressed=true]{border:2px solid var(--primary-hover);padding:13px;background:var(--mist)}
+.slot .r{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.slot .t{font-weight:600;color:var(--heading);font-size:15px;line-height:1.35}
+.slot .chip{align-self:flex-start;margin-top:auto}
+.msgbox{width:100%;min-height:120px;border:1px solid var(--line-strong);border-radius:12px;padding:12px;font-size:16px;line-height:1.6;resize:vertical;color:var(--heading)}
+.counter{text-align:right;font-size:14px;color:var(--muted);margin-top:4px}
+.counter.over{color:var(--alert-strong);font-weight:600}
+.copybox{display:flex;align-items:center;gap:8px;background:var(--mist);border-radius:12px;padding:10px 12px;font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--heading)}
+.copybox span{flex:1;word-break:break-word}
+
+/* Phone */
+@media (max-width:1023px){
+  .top{height:56px;padding:0 8px}
+  .brand .wm{display:none}
+  .searchrow{padding:10px 12px}
+  .scope{display:none}
+  .wrap{padding:18px 16px 72px}
+  h1{font-size:28px}
+  .grid2,.grid3,.split,.inbox,.setgrid{grid-template-columns:minmax(0,1fr)}
+  .grid4{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .slots{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gaya-panel{position:fixed;inset:0;width:auto;z-index:45;border:0;height:100dvh}
+  .chip{white-space:normal}
+  .settings-link .lbl,.pill-mid{display:none}
+  .setnav{display:flex;overflow-x:auto;gap:4px}
+  .setnav button{white-space:nowrap;width:auto}
+  .toast{left:16px;right:16px;bottom:16px}
+}
+.tabstrip{display:none}
+@media (max-width:1023px){
+  .top .tabs-top{display:none}
+  .tabstrip{display:flex;flex:none;gap:4px;overflow-x:auto;padding:8px 12px;border-bottom:1px solid var(--line);scrollbar-width:none;background:#fff}
+  .tabstrip::-webkit-scrollbar{display:none}
+  .tabstrip a{gap:6px;padding:6px 14px;border-radius:999px;color:var(--ink);text-decoration:none;font-weight:600;font-size:14px;white-space:nowrap;min-height:36px;display:flex;align-items:center;border:1px solid var(--line)}
+  .tabstrip a[aria-current=page]{background:var(--heading);color:#fff;border-color:var(--heading)}
+}
+</style>
+</head>
+<body>
+<div class="proto-note">BOOST prototype for the build (addendum 4). Fictional client, companies and people only. Nothing here sends, applies, stores or reads anything.</div>
+
+<header class="top">
+  <button class="icon-btn" id="gayaToggle" aria-pressed="false" aria-label="Show Gaya chat" title="Gaya chat">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>
+  </button>
+  <a class="brand" href="#/dashboard" aria-label="BOOST home"><span class="mark">B</span><span class="wm">BOOST</span></a>
+  <nav class="tabs-top" id="tabsTop" aria-label="Main"></nav>
+  <div class="top-right">
+    <span class="pill pill-mid" title="Daily limit">Review · <span class="num">3</span>&nbsp;of 5 today</span>
+    <a class="settings-link" href="#/settings" id="settingsLink"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg><span class="lbl">Settings</span></a>
+    <button class="avatar" id="avatarBtn" aria-haspopup="true" aria-expanded="false" aria-label="Account menu">AT</button>
+  </div>
+  <div class="menu" id="acctMenu" role="menu">
+    <div class="who"><strong style="color:var(--heading)">Alex Tan</strong><br><span style="color:var(--muted)">Accelerator · access until 14 Jan 2027</span></div>
+    <a href="#/profile" role="menuitem">My profile</a>
+    <a href="#/settings/privacy" role="menuitem">Export or delete my data</a>
+    <button role="menuitem" data-toast="Opens an email to your coach, Fred.">Contact your coach</button>
+    <button role="menuitem" data-toast="Signed out (prototype).">Sign out</button>
+  </div>
+</header>
+<nav class="tabstrip" id="tabStrip" aria-label="Main"></nav>
+
+<div class="searchrow" id="searchRow">
+  <label class="sr" for="scope">Search in</label>
+  <select class="scope" id="scope"><option value="all">Everything</option><option value="jobs">Jobs</option><option value="companies">Companies</option><option value="apps">Applications</option></select>
+  <div class="gsearch">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+    <label class="sr" for="gq">Search BOOST</label>
+    <input id="gq" placeholder="Search jobs, companies and your applications" autocomplete="off">
+    <kbd>Ctrl K</kbd>
+    <div class="sresults" id="sresults" role="listbox"></div>
+  </div>
+</div>
+
+<div class="body" id="appBody">
+  <aside class="gaya-panel" aria-label="Gaya chat">
+    <div class="g-head">
+      <img class="g-avatar" src="data:image/jpeg;base64,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" alt="">
+      <div class="g-title">Gaya<small>Your TalentFB coach</small></div>
+      <button class="icon-btn" id="newChat" aria-label="New chat"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+      <button class="icon-btn" id="closeGaya" aria-label="Close Gaya"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+    </div>
+    <div class="g-context" id="gContext"></div>
+    <div class="g-body" id="gBody" aria-live="polite"></div>
+    <div class="starters" id="starters"></div>
+    <div class="g-foot">
+      <form class="composer" id="composer">
+        <label for="gInput" class="sr">Message Gaya</label>
+        <textarea id="gInput" rows="1" placeholder="Ask Gaya anything about your search"></textarea>
+        <button class="send" id="gSend" type="submit" aria-label="Send" disabled><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+      </form>
+      <div class="g-note">Gaya drafts, you send. Gaya only uses facts you approved.</div>
+    </div>
+  </aside>
+  <main class="main" id="main"><div class="wrap" id="view"></div></main>
+</div>
+
+<div class="drawer-scrim" id="scrim"></div>
+<aside class="drawer" id="drawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle"></aside>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* ================= Data (all fictional) ================= */
+const ME={first:'Alex',name:'Alex Tan',role:'VP Product, Payments'};
+const COMPANIES={
+  northwind:{name:'Northwind Payments',color:'#7660DF',tier:2},
+  kestrel:{name:'Kestrel Health',color:'#1E1846',tier:1},
+  aurora:{name:'Aurora Logistics',color:'#5F49C9',tier:3},
+  lumen:{name:'Lumen Bank',color:'#4A4760',tier:null},
+  harbour:{name:'Harbour Digital',color:'#1C7A4E',tier:null},
+  orbit:{name:'Orbit Commerce',color:'#B4305A',tier:2},
+  pinecrest:{name:'Pinecrest Capital',color:'#66637C',tier:null},
+  solace:{name:'Solace Insurance',color:'#2A2358',tier:3}
+};
+const JOBS=[
+  {id:'j1',co:'northwind',title:'Head of Product, Merchant Platform',loc:'Singapore',work:'Hybrid',posted:'2 days ago',score:91,lane:'Product leadership',live:4,
+   reasons:['Led a merchant payments platform across 6 markets (your fact)','Must have met: real time payments experience','Tier 2 target company'],gaps:['Mandarin is listed as a plus'],saved:false},
+  {id:'j2',co:'kestrel',title:'Director of Product, Patient App',loc:'Singapore',work:'On site',posted:'today',score:86,lane:'Product leadership',live:3,
+   reasons:['Platform consolidation across markets matches your migration work','Tier 1 target: always your call'],gaps:['No healthcare experience in your facts'],saved:true},
+  {id:'j3',co:'orbit',title:'VP Product, Checkout',loc:'Singapore or Kuala Lumpur',work:'Hybrid',posted:'3 days ago',score:84,lane:'Product leadership',live:5,
+   reasons:['Checkout conversion work at Northstar Bank','Must have met: team of 20 or more'],gaps:[]},
+  {id:'j4',co:'harbour',title:'Senior Director, Payments Product',loc:'Singapore',work:'Remote in SG',posted:'5 days ago',score:79,lane:'Payments specialist',live:3,
+   reasons:['Payments product leadership, 12 years','Wide net role'],gaps:['Asks for card scheme certification']},
+  {id:'j5',co:'aurora',title:'Head of Product, Shipper Platform',loc:'Kuala Lumpur',work:'Hybrid',posted:'1 week ago',score:76,lane:'Product leadership',live:3,
+   reasons:['B2B platform scaling','Tier 3 target'],gaps:['Logistics domain not in your facts','Based in Kuala Lumpur']},
+  {id:'j6',co:'solace',title:'Chief Product Officer',loc:'Singapore',work:'On site',posted:'4 days ago',score:73,lane:'Product leadership',live:3,
+   reasons:['C suite product role at your level','Tier 3 target'],gaps:['Insurance domain not in your facts']}
+];
+const APPS=[
+  {id:'a1',co:'northwind',title:'Head of Product, Merchant Platform',status:'ready',score:91,when:'Prepared 07:15'},
+  {id:'a2',co:'orbit',title:'VP Product, Checkout',status:'going',score:84,when:'Goes out at 12:00'},
+  {id:'a3',co:'kestrel',title:'Director of Product, Patient App',status:'ready',score:86,when:'Tier 1: always your call',tier1:true},
+  {id:'a4',co:'lumen',title:'Director of Product',status:'submitted',score:88,when:'Submitted 28 Sep, 12:04'},
+  {id:'a5',co:'pinecrest',title:'Head of Digital Product',status:'handed',score:82,when:'Handed back 9 Oct: employer asks you to sign in'},
+  {id:'a6',co:'harbour',title:'Product Lead, Wallets',status:'skipped',score:71,when:'Skipped 8 Oct: below my level'},
+  {id:'a7',co:'aurora',title:'Director, Platform Product',status:'submitted',score:80,when:'Submitted 3 Oct, 12:02'},
+  {id:'a8',co:'northwind',title:'Director, Risk Products',status:'needs',score:83,when:'One answer needed'}
+];
+const STATUS={ready:['Your call','c-violet'],going:['Going out at 12:00','c-mid'],submitted:['Submitted','c-success'],handed:['Handed back to you','c-alert'],skipped:['Skipped','c-neutral'],needs:['Needs you','c-primary']};
+const PIPE={
+ 'Applied':[['lumen','Director of Product','28 Sep · 1 email'],['aurora','Director, Platform Product','3 Oct']],
+ 'Approached':[['northwind','Head of Product, Merchant Platform','Note sent to the CPO, 14 Oct']],
+ 'Replied':[['orbit','VP Product, Checkout','Recruiter replied 12 Oct']],
+ 'Interviewing':[['kestrel','Director of Product, Patient App','First call 20 Oct, 10:00']],
+ 'Offer':[],
+ 'Not this time':[['solace','Head of Digital','Email 30 Sep']],
+ 'No reply':[['pinecrest','Head of Digital Product','21 days, no reply']]
+};
+const INBOX=[
+ {from:'Kestrel Health Talent',sub:'Invitation: first conversation, Director of Product',cat:'Interview',when:'13 Oct',app:'Director of Product, Patient App',body:'Thank you for your application. We would like to invite you to a 45 minute video call with our Head of Digital on 20 October at 10:00.'},
+ {from:'Orbit Commerce Recruiting',sub:'Re: VP Product, Checkout',cat:'Other',when:'12 Oct',app:'VP Product, Checkout',body:'Thanks for reaching out. I have shared your profile with the hiring manager and will come back to you this week.'},
+ {from:'Lumen Bank Careers',sub:'Your application has been received',cat:'Applied',when:'28 Sep',app:'Director of Product',body:'We have received your application for Director of Product and will review it shortly.'},
+ {from:'Solace Insurance HR',sub:'Update on your application',cat:'Not this time',when:'30 Sep',app:'Head of Digital',body:'Thank you for your interest. We have decided to move forward with other candidates for this role.'},
+ {from:'Aurora Logistics',sub:'Online assessment for Director, Platform Product',cat:'Assessment',when:'7 Oct',app:'Director, Platform Product',body:'Please complete the product case assessment within 5 days using the link below.'}
+];
+const ARTICLES=[
+ {tag:'Hiring reality',min:4,title:'The best senior roles are filled before they are advertised',sum:'Why the advert is often the last step of a hire, and how to be in the room before it goes live.'},
+ {tag:'Method',min:5,title:'Why BOOST sends fewer applications, on purpose',sum:'Precision over volume: how quality gates, target companies and your daily limit work together.'},
+ {tag:'Outreach',min:6,title:'Approach the hiring manager without sounding needy',sum:'Context, compliment, curiosity: a short message structure that gets replies from busy leaders.'},
+ {tag:'CV',min:5,title:'What a recruiter reads in your first 8 lines',sum:'The executive summary, your top results and the facts only you can supply.'},
+ {tag:'Value Projects',min:7,title:'Turn a company problem into your interview',sum:'How a short, sourced Value Project changes the conversation from a CV to a plan.'},
+ {tag:'Hiring reality',min:4,title:'ATS myths that waste your evenings',sum:'What an applicant tracking system does and does not do once you press submit.'}
+];
+const FACTS=[
+ {t:'Achievement',v:'Scaled a merchant payments platform across 6 markets',s:'From your CV, page 1',st:'approved'},
+ {t:'Achievement',v:'Cut merchant onboarding time from 10 days to 2',s:'From your CV, page 1',st:'approved'},
+ {t:'Leadership',v:'Led a product organisation of 24 people',s:'From your CV, page 2',st:'approved'},
+ {t:'Role',v:'VP Product, Northstar Bank, 2021 to present',s:'From your CV, page 1',st:'approved'},
+ {t:'Skill',v:'Real time payments, checkout, merchant acquiring',s:'From your LinkedIn text',st:'to_check'},
+ {t:'Work rights',v:'Singapore: no sponsorship needed',s:'You told BOOST',st:'approved',sens:true},
+ {t:'Compensation floor',v:'Hidden. Tap to show.',s:'You told BOOST',st:'approved',sens:true}
+];
+
+/* ================= Helpers ================= */
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ini=n=>n.split(' ').map(w=>w[0]).slice(0,2).join('');
+const tile=(k,sz)=>{const c=COMPANIES[k];return `<div class="tile" style="background:${c.color}${sz?`;width:${sz}px;height:${sz}px`:''}">${ini(c.name)}</div>`};
+const cname=k=>COMPANIES[k].name;
+const band=s=>s>=90?'Excellent':s>=80?'Strong':'Good';
+const tierChip=k=>COMPANIES[k].tier?`<span class="chip c-violet">Target, Tier ${COMPANIES[k].tier}</span>`:'<span class="chip c-neutral">Wide net</span>';
+const ring=s=>`<div class="ring" style="--v:${s}" role="img" aria-label="Match score ${s} of 100, ${band(s)}"><b>${s}</b></div>`;
+const check='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>';
+const dash='<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-dasharray="3 3"><circle cx="12" cy="12" r="9"/></svg>';
+function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('show');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('show'),5000)}
+function copy(t,l){try{navigator.clipboard.writeText(t).catch(()=>{})}catch(e){} toast(l||'Copied')}
+function store(k,v){try{v===undefined?null:localStorage.setItem(k,v);return localStorage.getItem(k)}catch(e){return null}}
+
+/* ================= Navigation ================= */
+const TABS=[['dashboard','Dashboard'],['jobs','Browse jobs'],['apply','Boost apply'],['tracker','Job tracker'],['outreach','Outreach'],['profile','Profile'],['research','Research']];
+function drawTabs(cur){
+  const html=TABS.map(([k,l])=>`<a href="#/${k}" ${k===cur?'aria-current="page"':''}>${l}${k==='apply'?' <span class="badge num">3</span>':''}</a>`).join('');
+  $('#tabsTop').innerHTML=html;$('#tabStrip').innerHTML=html;
+  $('#settingsLink').toggleAttribute('aria-current',cur==='settings');
+  if(cur==='settings')$('#settingsLink').setAttribute('aria-current','page');
+  const act=$('#tabStrip [aria-current]');act&&act.scrollIntoView({inline:'center',block:'nearest'});
+}
+const VIEWS={dashboard:vDashboard,jobs:vJobs,apply:vApply,tracker:vTracker,outreach:vOutreach,profile:vProfile,research:vResearch,settings:vSettings};
+let route={tab:'dashboard',sub:null};
+function go(){
+  const h=location.hash.replace(/^#\/?/,'').split('/');
+  route={tab:VIEWS[h[0]]?h[0]:'dashboard',sub:h[1]||null};
+  drawTabs(route.tab);
+  closeDrawer();
+  VIEWS[route.tab]();
+  $('#main').scrollTop=0;
+  setContext();
+}
+window.addEventListener('hashchange',go);
+
+/* ================= Drawer ================= */
+function openDrawer(title,body,foot){
+  const d=$('#drawer');
+  d.innerHTML=`<div class="drawer-head"><h3 id="drawerTitle" style="flex:1">${title}</h3><button class="icon-btn" id="dClose" aria-label="Close"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6 6 18M6 6l12 12"/></svg></button></div><div class="drawer-body">${body}</div>${foot?`<div class="drawer-foot">${foot}</div>`:''}`;
+  d.classList.add('open');$('#scrim').classList.add('open');$('#dClose').onclick=closeDrawer;$('#dClose').focus();
+}
+function closeDrawer(){$('#drawer').classList.remove('open');$('#scrim').classList.remove('open')}
+$('#scrim').onclick=closeDrawer;
+
+/* ================= Dashboard ================= */
+function vDashboard(){
+  const ready=APPS.filter(a=>a.status==='ready'||a.status==='needs');
+  $('#view').innerHTML=`
+  <div class="page-head"><div><div class="eyebrow">Wednesday 14 October</div><h1>Good afternoon, ${ME.first}</h1></div><div class="sp"></div>
+    <span class="chip c-mid">Review mode</span><span class="chip c-neutral">Daily limit <span class="num">&nbsp;3 of 5&nbsp;</span> used</span></div>
+  <div class="steps" aria-label="Your five steps">
+    <div class="step done"><b>Step 1</b>Career clarity</div><div class="step done"><b>Step 2</b>CV and LinkedIn</div>
+    <div class="step cur"><b>Step 3</b>Job search</div><div class="step cur"><b>Step 4</b>Value Projects</div><div class="step cur"><b>Step 5</b>Outreach</div></div>
+  <div class="grid4 sec" style="margin-top:20px">
+    ${[['3','Approved this week','2 went out at 12:00'],['1','Replies','Orbit Commerce recruiter'],['1','Interviews','Kestrel Health, 20 Oct'],['4 of 5','Hiring manager messages','A guide, not a quota']].map(s=>`<div class="card stat"><span class="v">${s[0]}</span><h4>${s[1]}</h4><small>${s[2]}</small></div>`).join('')}
+  </div>
+  <div class="split sec">
+    <div>
+      <div class="row" style="margin-bottom:12px"><h2 style="margin:0">Your call today</h2><div class="sp"></div><a class="btn btn-sm" href="#/apply">See all in Boost apply</a></div>
+      ${ready.map(a=>packCard(a)).join('')}
+      <h2 class="sec">Going out at 12:00</h2>
+      ${APPS.filter(a=>a.status==='going').map(a=>`<div class="card row">${tile(a.co)}<div style="flex:1;min-width:0"><h4>${esc(a.title)}</h4><small style="color:var(--muted)">${cname(a.co)} · approved by you · receipt at 13:00</small></div><button class="btn btn-sm" data-hold="${a.id}">Hold this one</button></div>`).join('')}
+      <p class="helper">Goes out at 12:00 on the employer's form. You can hold it until then.</p>
+    </div>
+    <div>
+      <div class="card mist">
+        <h3>Follow ups due today</h3>
+        <div class="fact"><span class="tile" style="background:var(--heading);width:32px;height:32px;font-size:12px">MK</span><div class="v">Mei Lin Koh<small>Northwind Payments · day 4 follow up</small></div><a class="btn btn-sm" href="#/outreach">Open</a></div>
+      </div>
+      <div class="card sec" style="margin-top:16px">
+        <h3>Top matches today</h3>
+        ${JOBS.slice(0,3).map(j=>`<div class="fact" style="cursor:pointer" data-job="${j.id}">${ring(j.score)}<div class="v">${esc(j.title)}<small>${cname(j.co)} · ${esc(j.loc)}</small></div></div>`).join('')}
+        <a class="btn btn-sm btn-ghost" href="#/jobs">Browse all jobs</a>
+      </div>
+    </div>
+  </div>`;
+  bindPack();
+  $$('[data-hold]').forEach(b=>b.onclick=()=>{const a=APPS.find(x=>x.id===b.dataset.hold);a.status='ready';a.when='Held by you';toast('Held. This one will not go out at 12:00.');vDashboard()});
+  $$('[data-job]').forEach(b=>b.onclick=()=>jobDrawer(b.dataset.job));
+}
+function packCard(a){
+  return `<div class="card" style="margin-bottom:12px"><div class="row" style="align-items:flex-start">${tile(a.co)}
+    <div style="flex:1;min-width:200px"><h3>${esc(a.title)}</h3><div style="color:var(--muted);font-size:14px">${cname(a.co)} · ${esc(a.when)}</div>
+    <div class="row" style="gap:6px;margin-top:8px"><span class="chip ${STATUS[a.status][1]}">${STATUS[a.status][0]}</span>${tierChip(a.co)}<span class="chip c-success">Checked against your facts</span></div></div>${ring(a.score)}</div>
+    ${a.status==='needs'?`<div class="card mist" style="margin-top:12px;padding:14px"><h4>One answer needed before this can go out.</h4><p class="helper">"What is your notice period?"</p><div class="row" style="margin-top:8px"><input class="field" style="max-width:220px" aria-label="Your answer" placeholder="For example, 2 months"><button class="btn btn-sm btn-primary" data-ans="${a.id}">Save my answer</button></div></div>`:
+    `<div class="row" style="margin-top:14px"><button class="btn btn-primary btn-sm" data-approve="${a.id}">Approve my application</button><button class="btn btn-sm" data-open-app="${a.id}">See my application</button><button class="btn btn-sm btn-ghost" data-skip="${a.id}">Skip this role</button></div>`}
+  </div>`;
+}
+function bindPack(){
+  $$('[data-approve]').forEach(b=>b.onclick=()=>{const a=APPS.find(x=>x.id===b.dataset.approve);a.status='going';a.when='Goes out at 12:00';toast('Approved. It goes out at 12:00 unless you hold it.');VIEWS[route.tab]()});
+  $$('[data-skip]').forEach(b=>b.onclick=()=>{const a=APPS.find(x=>x.id===b.dataset.skip);a.status='skipped';a.when='Skipped today';toast('Skipped. Why skip it? Tell Gaya, it helps BOOST choose better tomorrow.');VIEWS[route.tab]()});
+  $$('[data-ans]').forEach(b=>b.onclick=()=>{const a=APPS.find(x=>x.id===b.dataset.ans);a.status='ready';a.when='Answer saved';toast('Saved. Your application is ready for your call.');VIEWS[route.tab]()});
+  $$('[data-open-app]').forEach(b=>b.onclick=()=>appDrawer(b.dataset.openApp));
+}
+
+/* ================= Browse jobs ================= */
+const FILTERS=[['Level: Director and above',true],['Location: Singapore and region',true],['Workplace',false],['Target tier',false],['Lane',false],['Minimum match: Strong',true],['Posted: last 7 days',false],['Work rights',false]];
+function vJobs(){
+  const saved=route.sub==='saved';
+  const list=JOBS.filter(j=>!saved||j.saved);
+  $('#view').innerHTML=`
+  <div class="page-head"><h1>Browse jobs</h1><div class="sp"></div>
+    <div class="seg" role="group" aria-label="Show"><button aria-pressed="${!saved}" onclick="location.hash='#/jobs'">All matches</button><button aria-pressed="${saved}" onclick="location.hash='#/jobs/saved'">Saved <span class="num">&nbsp;${JOBS.filter(j=>j.saved).length}</span></button></div></div>
+  <div class="row" style="margin-bottom:12px"><input class="field" style="max-width:420px" placeholder="Hide jobs mentioning, for example: sales quota" aria-label="Hide jobs mentioning"><button class="btn btn-sm btn-ghost" id="tune">Jobs look off? Tune with Gaya</button></div>
+  <div class="filters">${FILTERS.map((f,i)=>`<button class="fchip ${f[1]?'on':''}" data-f="${i}">${f[0]}</button>`).join('')}<button class="fchip" style="border-style:dashed" id="clearF">Clear</button></div>
+  <p class="helper" style="margin:-6px 0 16px">Only roles verified live by 3 or more sources. Target companies first. <span class="num">${list.length}</span> roles.</p>
+  <div class="grid3">
+    ${saved?'':`<div class="card addjob"><h3>Add a job</h3><p class="helper" style="margin:0">Paste a link from a company careers page or an ATS. BOOST checks it is live, then scores it.</p><input class="field" placeholder="Paste a job link" aria-label="Job link"><button class="btn btn-primary btn-sm" data-toast="BOOST is checking this job. It appears here once verified live.">Add this job</button></div>`}
+    ${list.map(j=>`<div class="card jobcard">
+      <div class="head">${tile(j.co)}<div style="flex:1;min-width:0"><div class="co">${cname(j.co)}</div><div class="title">${esc(j.title)}</div></div>${ring(j.score)}</div>
+      <div class="row" style="gap:6px">${tierChip(j.co)}<span class="chip c-success">Verified live, ${j.live} sources</span><span class="chip c-neutral">${esc(j.work)}</span></div>
+      <div style="font-size:14px;color:var(--muted)">${esc(j.loc)} · ${j.posted} · ${band(j.score)} match</div>
+      <ul class="reasons">${j.reasons.slice(0,2).map(r=>`<li>${check}<span>${esc(r)}</span></li>`).join('')}</ul>
+      <div class="acts"><button class="btn btn-sm btn-primary" data-prep="${j.id}">Prepare my application</button><button class="btn btn-sm" data-job="${j.id}">Details</button><button class="btn btn-sm btn-ghost" data-save="${j.id}" aria-pressed="${!!j.saved}">${j.saved?'Saved':'Save'}</button></div>
+    </div>`).join('')}
+  </div>`;
+  $$('[data-f]').forEach(b=>b.onclick=()=>{FILTERS[b.dataset.f][1]=!FILTERS[b.dataset.f][1];vJobs()});
+  $('#clearF').onclick=()=>{FILTERS.forEach(f=>f[1]=false);vJobs()};
+  $$('[data-job]').forEach(b=>b.onclick=()=>jobDrawer(b.dataset.job));
+  $$('[data-save]').forEach(b=>b.onclick=()=>{const j=JOBS.find(x=>x.id===b.dataset.save);j.saved=!j.saved;toast(j.saved?'Saved to your list.':'Removed from saved.');vJobs()});
+  $$('[data-prep]').forEach(b=>b.onclick=()=>toast('Preparing your application. It appears in Boost apply under Ready for you.'));
+  $('#tune').onclick=()=>{openGaya(true);gayaSend('Jobs look off. Hide roles that need Mandarin and anything below Director.')};
+}
+function jobDrawer(id){
+  const j=JOBS.find(x=>x.id===id);
+  openDrawer(esc(j.title),`
+    <div class="row">${tile(j.co,48)}<div style="flex:1"><h3>${cname(j.co)}</h3><div style="color:var(--muted);font-size:14px">${esc(j.loc)} · ${esc(j.work)} · ${j.posted}</div></div>${ring(j.score)}</div>
+    <div class="row" style="gap:6px;margin-top:12px">${tierChip(j.co)}<span class="chip c-success">Verified live, ${j.live} sources</span><span class="chip c-violet">Lane: ${esc(j.lane)}</span></div>
+    <h4 class="sec" style="margin-top:24px">Why it fits</h4><ul class="reasons">${j.reasons.map(r=>`<li>${check}<span>${esc(r)}</span></li>`).join('')}</ul>
+    <h4 style="margin-top:16px">Gaps</h4><ul class="reasons">${j.gaps.length?j.gaps.map(r=>`<li class="gap">${dash}<span>${esc(r)}</span></li>`).join(''):'<li class="gap">'+dash+'<span>No gaps found</span></li>'}</ul>
+    <h4 style="margin-top:16px">The job post</h4>
+    <p class="helper" style="margin-bottom:8px"><mark class="must">Must have</mark> &nbsp; <mark class="other">Other match</mark></p>
+    <p style="font-size:15px">You will lead product for our <mark class="must">real time payments</mark> platform serving merchants across <mark class="other">Southeast Asia</mark>. You manage a <mark class="must">team of 15 or more</mark> product managers and partner with engineering on <mark class="other">merchant onboarding</mark> and settlement.</p>
+    <h4 style="margin-top:16px">Next 5 steps</h4>
+    <ul class="reasons"><li>${dash}<span>Tailor my CV and letter</span></li><li>${dash}<span>Approve or apply</span></li><li>${dash}<span>Choose a Value Project</span></li><li>${dash}<span>Approach the hiring manager</span></li><li>${dash}<span>Ask for a referral</span></li></ul>`,
+    `<button class="btn btn-primary" data-toast="Preparing your application.">Prepare my application</button><a class="btn" href="#/outreach">Plan my approach</a><button class="btn btn-ghost" data-toast="Skipped. Why skip it? One reason helps BOOST choose better tomorrow.">Skip this role</button>`);
+}
+
+/* ================= Boost apply ================= */
+let applyTab='ready', mode='review';
+function vApply(){
+  const groups={ready:a=>a.status==='ready'||a.status==='needs',going:a=>a.status==='going',submitted:a=>a.status==='submitted',handed:a=>a.status==='handed',skipped:a=>a.status==='skipped'};
+  const labels={ready:'Ready for you',going:'Going out today',submitted:'Submitted',handed:'Handed back',skipped:'Skipped'};
+  const rows=APPS.filter(groups[applyTab]);
+  $('#view').innerHTML=`
+  <div class="page-head"><h1>Boost apply</h1><div class="sp"></div>
+    <div class="seg" role="group" aria-label="Mode"><button aria-pressed="${mode==='review'}" data-mode="review">Review</button><button disabled title="Unlocks after 10 clean applications">Hybrid</button><button disabled title="Unlocks after 3 clean Hybrid weeks">Auto</button></div></div>
+  <div class="grid3" style="margin-bottom:24px">
+    <div class="card"><div class="eyebrow">Mode</div><h3 style="margin:4px 0">Review</h3><p class="helper" style="margin:0">Nothing goes out without your approval. Hybrid unlocks at 10 clean applications: <span class="num">7 of 10</span>.</p><div class="bar" style="margin-top:10px"><i style="width:70%"></i></div></div>
+    <div class="card"><div class="eyebrow">Daily limit</div><h3 style="margin:4px 0"><span class="num">3 of 5</span> used today</h3><p class="helper" style="margin:0">Next step is 10 a day, confirmed with your coach in your weekly call.</p><div class="bar" style="margin-top:10px"><i style="width:60%"></i></div></div>
+    <div class="card"><div class="eyebrow">Lanes</div><h3 style="margin:4px 0">2 active</h3><p class="helper" style="margin:0">Product leadership (minimum 80) · Payments specialist (minimum 90)</p><a class="btn btn-sm btn-ghost" href="#/settings/lanes" style="margin-top:6px">Edit my lanes</a></div>
+  </div>
+  <div class="subtabs" role="tablist">${Object.keys(labels).map(k=>`<button role="tab" aria-selected="${k===applyTab}" data-at="${k}">${labels[k]}<span class="n">${APPS.filter(groups[k]).length}</span></button>`).join('')}</div>
+  ${applyTab==='ready'&&rows.length?`<div class="row" style="margin-bottom:12px"><p class="helper" style="margin:0;flex:1">Tier 1 targets and Needs you questions are never approved in bulk.</p><button class="btn btn-sm" id="approveAll">Approve all that passed every check</button></div>`:''}
+  ${rows.length?`<div class="tablewrap"><table><thead><tr><th>Company</th><th>Role</th><th>Match</th><th>Status</th><th>When</th></tr></thead><tbody>
+    ${rows.map(a=>`<tr class="click" data-open-app="${a.id}"><td><div class="row" style="flex-wrap:nowrap">${tile(a.co)}<span style="color:var(--heading);font-weight:600">${cname(a.co)}</span></div></td><td>${esc(a.title)}</td><td><span class="num">${a.score}</span> <span style="color:var(--muted);font-size:14px">${band(a.score)}</span></td><td><span class="chip ${STATUS[a.status][1]}">${STATUS[a.status][0]}</span></td><td style="color:var(--muted);font-size:14px">${esc(a.when)}</td></tr>`).join('')}
+  </tbody></table></div>`:`<div class="card empty">Nothing here right now. Today's roles arrive at 07:30.</div>`}`;
+  $$('[data-at]').forEach(b=>b.onclick=()=>{applyTab=b.dataset.at;vApply()});
+  $$('[data-open-app]').forEach(r=>r.onclick=()=>appDrawer(r.dataset.openApp));
+  const aa=$('#approveAll');if(aa)aa.onclick=()=>{let n=0;APPS.forEach(a=>{if(a.status==='ready'&&!a.tier1){a.status='going';a.when='Goes out at 12:00';n++}});toast(`Approved ${n}. Tier 1 and Needs you stay with you.`);vApply()};
+}
+function appDrawer(id){
+  const a=APPS.find(x=>x.id===id);
+  const steps=['Prepared','Checked against your facts','Approved by you','Sent at 12:00','Receipt'];
+  const done={ready:2,needs:1,going:3,submitted:5,handed:3,skipped:1}[a.status];
+  openDrawer(esc(a.title),`
+    <div class="row">${tile(a.co,48)}<div style="flex:1"><h3>${cname(a.co)}</h3><span class="chip ${STATUS[a.status][1]}">${STATUS[a.status][0]}</span></div>${ring(a.score)}</div>
+    <h4 style="margin-top:20px">Progress</h4>
+    <ul class="reasons">${steps.map((s,i)=>`<li class="${i<done?'':'gap'}">${i<done?check:dash}<span>${s}</span></li>`).join('')}</ul>
+    ${a.status==='handed'?`<div class="card" style="background:var(--alert-tint);border-color:var(--alert-tint);margin-top:12px"><h4 style="color:var(--alert-strong)">BOOST stopped before sending: this employer asks you to sign in. Your kit is ready.</h4></div>`:''}
+    <h4 style="margin-top:20px">What goes to the employer</h4>
+    <div class="fact"><div class="v">CV, tailored for this role<small>Every line from your approved facts</small></div><button class="btn btn-sm btn-ghost" data-toast="Opens the PDF.">View</button></div>
+    <div class="fact"><div class="v">Cover letter, 210 words<small>Checked against your facts: pass</small></div><button class="btn btn-sm btn-ghost" data-toast="Opens the PDF.">View</button></div>
+    <h4 style="margin-top:20px">Form answers</h4>
+    <div class="fact"><div class="v">Years of product leadership<small>12 · from your fact "VP Product, Northstar Bank"</small></div></div>
+    <div class="fact"><div class="v">Right to work in Singapore<small>Yes, no sponsorship · from your sensitive fact, only you and your coach see this</small></div></div>
+    <div class="fact"><div class="v">Voluntary self identification<small>Prefer not to say (your default)</small></div></div>
+    <h4 style="margin-top:20px">Outreach for this role</h4>
+    <p class="helper">2 hiring managers, 1 recruiter and 1 referrer to find. <a href="#/outreach" style="color:var(--primary);font-weight:600">Open my approach plan</a></p>`,
+    a.status==='ready'||a.status==='needs'?`<button class="btn btn-primary" data-approve="${a.id}">Approve my application</button><button class="btn" data-toast="Ask for a change: tell Gaya what to rewrite.">Ask for a change</button><button class="btn btn-ghost" data-skip="${a.id}">Skip this role</button>`:
+    a.status==='going'?`<button class="btn" data-toast="Held. This one will not go out at 12:00.">Hold this one</button>`:
+    a.status==='handed'?`<button class="btn btn-primary" data-toast="Opens the employer's page in a new tab.">Open the application page</button><button class="btn" data-toast="Marked as submitted by you.">I submitted it</button>`:'');
+  bindPack();
+}
+
+/* ================= Job tracker ================= */
+let trackTab='pipeline', inboxSel=0, inboxCat='All';
+function vTracker(){
+  $('#view').innerHTML=`
+  <div class="page-head"><h1>Job tracker</h1><div class="sp"></div>
+    <button class="btn btn-sm" data-toast="Your tracker is exported to your Google Sheet.">Export my tracker</button>
+    <button class="btn btn-sm btn-primary" id="addApp">Add an application</button></div>
+  <div class="subtabs" role="tablist"><button role="tab" aria-selected="${trackTab==='pipeline'}" data-tt="pipeline">Pipeline</button><button role="tab" aria-selected="${trackTab==='inbox'}" data-tt="inbox">Employer emails<span class="n">${INBOX.length}</span></button></div>
+  <div id="trackBody"></div>`;
+  $$('[data-tt]').forEach(b=>b.onclick=()=>{trackTab=b.dataset.tt;vTracker()});
+  $('#addApp').onclick=()=>openDrawer('Add an application',`<p class="helper">For roles you applied to outside BOOST, so your tracker stays complete.</p><label class="lab">Company</label><input class="field"><label class="lab">Role</label><input class="field"><label class="lab">Date applied</label><input class="field" type="date"><label class="lab">Stage</label><select class="field">${Object.keys(PIPE).map(s=>`<option>${s}</option>`).join('')}</select>`,`<button class="btn btn-primary" data-toast="Added to your tracker.">Save to my tracker</button>`);
+  if(trackTab==='pipeline'){
+    $('#trackBody').innerHTML=`
+      <div class="grid4" style="margin-bottom:20px">${[['9','Applications in 30 days'],['44%','Reply rate on outreach'],['1','Interviews'],['12 days','Median time to first reply']].map(s=>`<div class="card stat"><span class="v">${s[0]}</span><small>${s[1]}</small></div>`).join('')}</div>
+      <div class="board">${Object.entries(PIPE).map(([st,cards])=>`<div class="col"><h4><span>${st}</span><span class="num">${cards.length}</span></h4>
+        ${cards.map(c=>`<div class="pcard"><div class="row" style="gap:8px;flex-wrap:nowrap">${tile(c[0],28)}<strong>${cname(c[0])}</strong></div><small style="margin-top:6px">${esc(c[1])}</small><small>${esc(c[2])}</small><button class="btn btn-sm btn-ghost" style="padding:0 8px;margin-top:4px" data-toast="Choose a stage: Applied, Approached, Replied, Interviewing, Offer, Not this time, No reply.">Move to</button></div>`).join('')||'<p class="helper">Nothing here yet.</p>'}
+      </div>`).join('')}</div>
+      <p class="helper">Stages move when you tap "Move to" or log a reply. BOOST never reads your mailbox.</p>`;
+  } else {
+    const cats=['All','Interview','Assessment','Applied','Not this time','Other'];
+    const list=INBOX.filter(m=>inboxCat==='All'||m.cat===inboxCat);
+    const m=list[Math.min(inboxSel,list.length-1)];
+    $('#trackBody').innerHTML=`
+      <div class="card mist row" style="margin-bottom:16px;padding:14px 16px"><div style="flex:1;min-width:220px"><h4>Your forwarding address</h4><p class="helper" style="margin:0">Forward employer emails here and BOOST files them under the right application.</p></div><div class="copybox" style="min-width:260px"><span>alex.k7q2@in.boost.talentfb.net</span><button class="btn btn-sm btn-ghost" data-copy="alex.k7q2@in.boost.talentfb.net">Copy</button></div></div>
+      <div class="filters">${cats.map(c=>`<button class="fchip ${c===inboxCat?'on':''}" data-cat="${c}">${c}</button>`).join('')}</div>
+      <div class="inbox"><div class="ilist">${list.map((x,i)=>`<button class="${x===m?'active':''}" data-mi="${i}"><span class="tile" style="background:var(--heading);width:34px;height:34px;font-size:12px">${ini(x.from)}</span><span style="flex:1;min-width:0"><strong style="color:var(--heading);font-size:14px">${esc(x.from)}</strong><small>${esc(x.sub)}</small><span class="chip c-neutral" style="margin-top:4px">${x.cat}</span></span><small>${x.when}</small></button>`).join('')||'<p class="empty">No emails in this group.</p>'}</div>
+      <div class="iview">${m?`<div class="eyebrow">${m.cat}</div><h3 style="margin:4px 0 4px">${esc(m.sub)}</h3><p class="helper" style="margin-bottom:14px">${esc(m.from)} · ${m.when} · filed under <strong>${esc(m.app)}</strong></p><p>${esc(m.body)}</p>
+        <div class="row" style="margin-top:16px"><button class="btn btn-sm btn-primary" data-toast="Moved to ${m.cat==='Interview'?'Interviewing':'the stage you chose'}.">${m.cat==='Interview'?'Move to Interviewing':'Log a reply'}</button><button class="btn btn-sm" data-ask-gaya="Help me reply to ${esc(m.from)}">Draft my reply with Gaya</button></div>
+        <p class="helper">You reply from your own email. BOOST never sends.</p>`:''}</div></div>`;
+    $$('[data-cat]').forEach(b=>b.onclick=()=>{inboxCat=b.dataset.cat;inboxSel=0;vTracker()});
+    $$('[data-mi]').forEach(b=>b.onclick=()=>{inboxSel=+b.dataset.mi;vTracker()});
+  }
+}
+
+/* ================= Outreach ================= */
+const OUT={northwind:{found:2,summary:'a regional payments company moving its merchant platform to real time settlement.',src:'Company newsroom, 18 Sep 2026',
+  slots:[{r:'Hiring manager 1',t:'Chief Product Officer',team:'Product',p:'Mei Lin Koh',st:'sent'},{r:'Hiring manager 2',t:'VP Engineering',team:'Merchant Platform',st:'find'},{r:'Recruiter',t:'Talent Acquisition Lead',team:'Product and Tech',p:'Daniel Ong',st:'found'},{r:'Referrer',t:'Product Director',team:'Merchant Platform',st:'find'}],
+  news:[['The Business Times','3 Oct 2026','Northwind Payments partners regional bank on QR acceptance'],['Fintech News SG','18 Sep 2026','Northwind moves merchant settlement to real time']],
+  needs:[['Settlement times in Indonesia and Vietnam are a stated 2027 priority.','Annual report 2025'],['6 open product and platform roles in 30 days.','Careers page, seen 12 Oct']]}};
+let outCo=null, outSlot=2, lookups=3;
+function vOutreach(){
+  if(outCo) return vCompany();
+  const mine=['northwind','kestrel','orbit','aurora'];
+  $('#view').innerHTML=`
+  <div class="page-head"><h1>Outreach</h1><div class="sp"></div><span class="chip c-neutral"><span class="num">${10-lookups}</span>&nbsp;of 10 company lookups left today</span></div>
+  <div class="split"><div>
+    <h2>Your companies</h2>
+    <div class="grid2">${mine.map(k=>`<button class="card" style="text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:8px" data-co="${k}"><div class="row" style="flex-wrap:nowrap">${tile(k)}<h3>${cname(k)}</h3></div><div class="row" style="gap:6px">${tierChip(k)}${k==='northwind'?'<span class="chip c-mid">Follow up due</span>':''}</div><span style="font-size:14px"><span class="num">${k==='northwind'?2:k==='aurora'?1:0}</span> of 4 people found</span></button>`).join('')}</div>
+    <h2 class="sec">To send</h2>
+    <div class="card" style="padding:4px 20px"><div class="fact"><span class="tile" style="background:var(--primary);width:32px;height:32px;font-size:12px">DO</span><div class="v">Daniel Ong, Northwind Payments<small>Connection note ready</small></div><button class="btn btn-sm" data-co="northwind">Open</button></div></div>
+  </div>
+  <div class="card mist"><h3>This week</h3>${[['Hiring manager messages',3,5],['Recruiter messages',1,3],['Referral requests',0,2]].map(x=>`<div style="margin-top:12px"><div class="row" style="justify-content:space-between"><span>${x[0]}</span><span class="num">${x[1]} of ${x[2]}</span></div><div class="bar mist-bar"><i style="width:${x[1]/x[2]*100}%"></i></div></div>`).join('')}<p class="helper">A guide from your method, not a quota.</p></div></div>`;
+  $$('[data-co]').forEach(b=>b.onclick=()=>{outCo=b.dataset.co;vOutreach();setContext()});
+}
+function vCompany(){
+  const c=COMPANIES[outCo], d=OUT[outCo]||{found:0,summary:'a company BOOST is researching now.',src:'Research running',slots:[{r:'Hiring manager 1',t:'Chief Digital Officer',team:'Digital',st:'find'},{r:'Hiring manager 2',t:'Head of Product',team:'Digital Products',st:'find'},{r:'Recruiter',t:'Talent Acquisition Manager',team:'Technology',st:'find'},{r:'Referrer',t:'Senior Product Manager',team:'Product',st:'find'}],news:[],needs:[]};
+  if(outSlot>=d.slots.length)outSlot=0;
+  const s=d.slots[outSlot], who=s.p?s.p.split(' ')[0]:'[first name]';
+  const note=`Hi ${who}, ${c.name}'s product work caught my eye. I scaled a merchant payments platform across 6 markets and would be glad to connect.`;
+  const chipFor={find:'<span class="chip c-neutral">To find</span>',found:'<span class="chip c-violet">Found</span>',sent:'<span class="chip c-lav">Note sent</span>'};
+  $('#view').innerHTML=`
+  <p style="margin:0 0 12px"><button class="btn btn-sm btn-ghost" id="backOut">Back to Outreach</button></p>
+  <div class="split"><div>
+    <div class="card row" style="align-items:flex-start">${tile(outCo,64)}<div style="flex:1;min-width:220px"><h1 style="font-size:30px">${c.name}</h1>
+      <p style="margin:4px 0 8px"><span style="color:var(--muted)">From what is public, it looks like</span> ${esc(d.summary)} <span class="helper" style="display:inline">(${esc(d.src)})</span></p>
+      <div class="row" style="gap:6px">${tierChip(outCo)}<span class="chip c-neutral">Applications here: 1 of 2 in 90 days</span></div></div></div>
+    <h2 class="sec">People to find</h2>
+    <div class="slots">${d.slots.map((x,i)=>`<button class="slot" data-slot="${i}" aria-pressed="${i===outSlot}"><span class="r">${x.r}</span><span class="t">${esc(x.p||x.t)}</span><span style="font-size:13px;color:var(--muted)">${esc(x.p?x.t:x.team)}</span>${chipFor[x.st]}</button>`).join('')}</div>
+    <div class="card" style="margin-top:12px">
+      <div class="grid2"><div><h4>Search words to copy</h4><div class="copybox" style="margin-top:6px"><span>"${esc(s.t)}" AND "${c.name}"</span><button class="btn btn-sm btn-ghost" data-copy='"${esc(s.t)}" AND "${c.name}"'>Copy</button></div><p class="helper">Paste into LinkedIn search yourself. BOOST does not open or read LinkedIn.</p></div>
+      <div><h4>${s.p?'Person found':'I found this person'}</h4>${s.p?`<p style="margin-top:6px"><strong style="color:var(--heading)">${esc(s.p)}</strong>, ${esc(s.t)}</p>`:`<input class="field" style="margin-top:6px" placeholder="Name" aria-label="Name"><input class="field" style="margin-top:6px" placeholder="Profile link" aria-label="Profile link"><button class="btn btn-sm btn-primary" style="margin-top:8px" data-toast="Messages personalised for this person.">Personalise for this person</button>`}</div></div>
+      <h4 style="margin-top:16px">Connection note</h4>
+      <textarea class="msgbox" id="note" style="margin-top:6px" aria-label="Connection note">${esc(note)}</textarea><div class="counter" id="cnt"></div>
+      <div class="row" style="margin-top:10px"><button class="btn btn-sm" data-ask-gaya="Make my note to ${esc(s.p||s.r)} shorter and warmer">Rewrite with Gaya</button><button class="btn btn-sm" id="copyNote">Copy message</button><button class="btn btn-sm btn-primary" data-toast="Marked as sent. Your day 4 follow up is ready on 18 Oct.">I sent it</button></div>
+      <p class="helper">You send it yourself, from your own LinkedIn or email.</p>
+    </div>
+  </div>
+  <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="card"><h3>What they may need</h3>${d.needs.map(n=>`<div class="fact"><div class="v" style="font-size:15px">${esc(n[0])}<small>${esc(n[1])}</small></div></div>`).join('')||'<p class="helper">BOOST is researching this company.</p>'}<button class="btn btn-sm" style="margin-top:8px" data-toast="Opens Value Project ideas.">Show me Value Project ideas</button></div>
+    <div class="card"><h3>Company news</h3>${d.news.map(n=>`<div class="fact"><div class="v" style="font-size:15px">${esc(n[2])}<small>${esc(n[0])} · ${esc(n[1])}</small></div></div>`).join('')||'<p class="helper">No recent news found.</p>'}</div>
+    <div class="card mist"><h3>Your network</h3><p class="helper">Coming later: see who you already know here, from your own LinkedIn connections file.</p></div>
+  </div></div>`;
+  $('#backOut').onclick=()=>{outCo=null;vOutreach();setContext()};
+  $$('[data-slot]').forEach(b=>b.onclick=()=>{outSlot=+b.dataset.slot;vCompany()});
+  const n=$('#note'),cnt=()=>{const l=n.value.length;$('#cnt').className='counter'+(l>200?' over':'');$('#cnt').innerHTML=l>200?`Shorten by <span class="num">${l-200}</span> characters`:`<span class="num">${l} of 200</span>`};n.oninput=cnt;cnt();
+  $('#copyNote').onclick=()=>copy(n.value,'Copied. Paste it into your own LinkedIn.');
+}
+
+/* ================= Profile ================= */
+let profTab='story';
+function vProfile(){
+  const tabs=[['story','My Story'],['cv','CV'],['targets','Target companies'],['prefs','Preferences'],['defaults','Application answers']];
+  $('#view').innerHTML=`
+  <div class="card row" style="margin-bottom:20px"><span class="avatar" style="width:56px;height:56px;font-size:20px">AT</span><div style="flex:1;min-width:200px"><h2 style="margin:0">${ME.name}</h2><div style="color:var(--muted)">${ME.role} · Singapore</div></div>
+    <span class="chip c-success">CV scores 92</span><span class="chip c-violet">31 of 33 facts approved</span><button class="btn btn-sm" data-toast="Bring in my Masterclass work again.">Update my story</button></div>
+  <div class="subtabs" role="tablist">${tabs.map(t=>`<button role="tab" aria-selected="${t[0]===profTab}" data-pt="${t[0]}">${t[1]}</button>`).join('')}</div>
+  <div id="profBody"></div>`;
+  $$('[data-pt]').forEach(b=>b.onclick=()=>{profTab=b.dataset.pt;vProfile()});
+  const B=$('#profBody');
+  if(profTab==='story') B.innerHTML=`<div class="split"><div class="card"><div class="row"><h3 style="flex:1">Your Fact Bank</h3><span class="chip c-neutral">BOOST only uses facts you approve.</span></div>
+    ${FACTS.map((f,i)=>`<div class="fact"><div class="v">${f.sens?'<span class="chip c-neutral" style="margin-right:6px">Sensitive</span>':''}${esc(f.v)}<small>${f.t} · ${f.s}${f.sens?' · Only you and your coach see this. It is never used to score jobs.':''}</small></div>${f.st==='approved'?'<span class="chip c-success">Approved</span>':`<button class="btn btn-sm btn-primary" data-fact="${i}">Approve</button><button class="btn btn-sm btn-ghost" data-toast="Correct this fact.">Correct this</button>`}</div>`).join('')}</div>
+    <div class="card mist"><h3>Your positioning</h3><p style="margin-top:8px">Payments product leader who turns slow, fragmented merchant platforms into real time products across Southeast Asia.</p><p class="helper">From your Masterclass module 1. Gaya uses it in every draft.</p></div></div>`;
+  if(profTab==='cv') B.innerHTML=`<div class="split"><div class="card"><div class="row"><div class="ring" style="--v:92;width:88px;height:88px"><b style="width:70px;height:70px;font-size:28px">92</b></div><div><h3>Your CV scores 92. Steps 3 to 5 are open.</h3><p class="helper">Scored against the TalentFB 90 standard. BOOST never rewrites your master CV.</p></div></div>
+    <h4 style="margin-top:20px">Top 3 fixes</h4><ul class="reasons">${['Put your LinkedIn link at the top, beside your email.','Cut the summary to 6 lines: 2 who, 2 achieved, 2 next.','Add one result to your Northstar Bank role.'].map(t=>`<li class="gap">${dash}<span>${t}</span></li>`).join('')}</ul></div>
+    <div class="card"><h3>Your CV variations</h3><div class="fact"><div class="v">Master CV<small>Uploaded 2 Oct · default</small></div></div><div class="fact"><div class="v">Product leadership lane<small>Reordered from approved facts</small></div></div><div class="fact"><div class="v">Payments specialist lane<small>Reordered from approved facts</small></div></div><button class="btn btn-sm" data-toast="Upload my updated CV.">Upload my updated CV</button></div></div>`;
+  if(profTab==='targets') B.innerHTML=[1,2,3].map(t=>`<div class="card" style="margin-bottom:12px"><h3>Tier ${t}</h3>${Object.entries(COMPANIES).filter(([k,c])=>c.tier===t).map(([k,c])=>`<div class="fact">${tile(k,32)}<div class="v">${c.name}<small>Watch on · checked this morning</small></div><label class="switch"><input type="checkbox" checked aria-label="Watch ${c.name}"><span></span></label></div>`).join('')}</div>`).join('')+`<button class="btn btn-primary btn-sm" data-toast="Add a target company.">Add a target company</button>`;
+  if(profTab==='prefs') B.innerHTML=`<div class="card"><h3>Your preferences</h3>${[['Target roles','VP Product, Head of Product, Chief Product Officer'],['Must haves','All of them: payments or fintech; team of 15 or more'],['Industries','Payments, banking, commerce · Not for me: gambling'],['Level','Director and above'],['Location setting','Singapore first, then Southeast Asia'],['Deal breakers','Roles that require relocation outside Asia']].map(p=>`<div class="setrow"><div class="t"><strong style="color:var(--heading)">${p[0]}</strong><small>${p[1]}</small></div><button class="btn btn-sm btn-ghost" data-toast="Edit ${p[0].toLowerCase()}.">Edit</button></div>`).join('')}</div>`;
+  if(profTab==='defaults') B.innerHTML=`<div class="card"><h3>Application answers</h3><p class="helper">What BOOST uses on employer forms. Anything missing comes to you as Needs you, never a guess.</p>
+    ${[['Work rights','Singapore: yes, no sponsorship',1],['Notice period','2 months',0],['Willing to relocate','Within Southeast Asia',0],['Voluntary self identification','Prefer not to say',1],['Compensation floor','Hidden',1]].map(p=>`<div class="setrow"><div class="t"><strong style="color:var(--heading)">${p[0]}</strong><small>${p[1]}${p[2]?' · Only you and your coach see this':''}</small></div><button class="btn btn-sm btn-ghost" data-toast="Edit ${p[0].toLowerCase()}.">Edit</button></div>`).join('')}</div>`;
+  $$('[data-fact]').forEach(b=>b.onclick=()=>{FACTS[b.dataset.fact].st='approved';toast('Approved.');vProfile()});
+}
+
+/* ================= Research ================= */
+function vResearch(){
+  if(route.sub){const a=ARTICLES[+route.sub];
+    $('#view').innerHTML=`<div class="reader"><a class="btn btn-sm btn-ghost" href="#/research">Back to Research</a><div class="eyebrow" style="margin-top:16px">${a.tag} · ${a.min} min read</div><h1 style="margin:6px 0 16px">${esc(a.title)}</h1>
+    <p>${esc(a.sum)}</p><p>Most senior hires start long before a job is posted. A leader feels a problem, talks to a few people they trust, and only then asks for a job description. By the time the advert is live, someone is often already in the conversation.</p><p>That is why BOOST pairs every application with an approach plan: the hiring manager, the recruiter and one person who can refer you. The application is the second touch, not the first.</p>
+    <div class="card mist" style="margin-top:24px"><h3>Try it in BOOST</h3><p class="helper">Open a Tier 1 target in Outreach and plan your first message.</p><a class="btn btn-sm btn-primary" href="#/outreach" style="margin-top:8px">Open Outreach</a></div></div>`;return}
+  $('#view').innerHTML=`<div class="reader" style="max-width:820px"><h1>Research</h1><p style="font-size:18px;margin-top:12px">What we see in senior hiring, from 15+ years in recruitment and 350+ senior professionals coached. Short reads, each with one thing to do in BOOST.</p>
+    <div class="filters" style="margin-top:16px">${['All','Hiring reality','Method','Outreach','CV','Value Projects'].map((t,i)=>`<button class="fchip ${i===0?'on':''}">${t}</button>`).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:12px">${ARTICLES.map((a,i)=>`<a class="card art" href="#/research/${i}" style="text-decoration:none;color:inherit"><span class="n">${i+1}</span><span style="flex:1"><span class="row" style="gap:8px"><span class="chip c-neutral">${a.tag}</span><span class="helper" style="margin:0">${a.min} min read</span></span><h3 style="margin:8px 0 4px">${esc(a.title)}</h3><span style="color:var(--ink)">${esc(a.sum)}</span></span></a>`).join('')}</div></div>`;
+}
+
+/* ================= Settings ================= */
+const SETS=[['apply','Apply settings'],['lanes','Lanes'],['memory','What Gaya knows'],['location','Location and exclusions'],['notifications','Notifications'],['email','Email forwarding'],['plan','Plan and access'],['privacy','Data and privacy'],['account','Account']];
+function vSettings(){
+  const cur=SETS.find(s=>s[0]===route.sub)?route.sub:'apply';
+  const body={
+    apply:`<h2>Apply settings</h2><p class="helper">How your applications are prepared and sent.</p>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">Mode</strong><small>Review: nothing goes out without your approval. Hybrid at 10 clean applications (7 of 10). Auto after 3 clean Hybrid weeks and your signed mandate.</small></div><div class="seg"><button aria-pressed="true">Review</button><button disabled>Hybrid</button><button disabled>Auto</button></div></div>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">CV tailoring</strong><small>Honest only: BOOST reorders and rephrases your approved facts. It never adds a claim you have not approved.</small></div><span class="chip c-success">Honest</span></div>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">Review before submit</strong><small>Always on in Review mode. You see every answer before it goes out.</small></div><label class="switch"><input type="checkbox" checked disabled aria-label="Review before submit"><span></span></label></div>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">Daily limit</strong><small>5 a day now. Next step 10, then 25 and 50, each confirmed with your coach.</small></div><span class="num">5</span></div>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">Cover letters</strong><small>Written from your approved facts when a job asks for one, under 250 words.</small></div><label class="switch"><input type="checkbox" checked aria-label="Cover letters"><span></span></label></div>`,
+    lanes:`<h2>Lanes</h2><p class="helper">One lane per target role, each with its own CV variation, must haves and minimum match.</p>
+      ${[['Product leadership','Master CV, product version','80 Strong'],['Payments specialist','Payments version','90 Excellent']].map(l=>`<div class="card" style="margin-top:12px"><div class="row"><h3 style="flex:1">${l[0]}</h3><label class="switch"><input type="checkbox" checked aria-label="${l[0]} active"><span></span></label></div><p class="helper">${l[1]} · minimum match ${l[2]}</p><label class="lab">Standing instructions</label><textarea class="field">Skip roles below Director. Skip anything that needs Mandarin.</textarea><p class="helper">Here is how BOOST reads this: hide roles below Director; hide roles that require Mandarin.</p></div>`).join('')}
+      <button class="btn btn-primary btn-sm" style="margin-top:12px" data-toast="Add a lane.">Add a lane</button>`,
+    memory:`<h2>What Gaya knows</h2><p class="helper">Preferences you confirmed in chats. Edit or remove any of them.</p>${['Prefers direct, short messages to hiring managers','Not interested in gambling or crypto companies','Wants to stay in Singapore for at least 2 years'].map(m=>`<div class="setrow"><div class="t">${m}</div><button class="btn btn-sm btn-ghost" data-toast="Removed.">Remove</button></div>`).join('')}`,
+    location:`<h2>Location and exclusions</h2><div class="setrow"><div class="t"><strong style="color:var(--heading)">Location setting</strong><small>Local, regional or global</small></div><div class="seg"><button>Local</button><button aria-pressed="true">Regional</button><button>Global</button></div></div>
+      <div class="setrow"><div class="t"><strong style="color:var(--heading)">Confidentiality exclusions</strong><small>Your current employer and its group are never applied to and never shown. Only you and your coach see this list.</small></div><span class="chip c-neutral">2 companies</span></div>`,
+    notifications:`<h2>Notifications</h2>${[['Morning digest at 07:30','Your call, Needs you, follow ups due',1],['Sent today at 13:00','Receipts for what went out',1],['Weekly report, Monday 08:00','Copied to your coach',1],['WhatsApp alerts','Coming later',0]].map(n=>`<div class="setrow ${n[2]?'':'later'}"><div class="t"><strong style="color:var(--heading)">${n[0]}</strong><small>${n[1]}</small></div><label class="switch"><input type="checkbox" ${n[2]?'checked':'disabled'} aria-label="${n[0]}"><span></span></label></div>`).join('')}`,
+    email:`<h2>Email forwarding</h2><p class="helper">Forward employer emails to your BOOST address. BOOST never connects to your mailbox in this version.</p><div class="copybox" style="margin-top:12px"><span>alex.k7q2@in.boost.talentfb.net</span><button class="btn btn-sm btn-ghost" data-copy="alex.k7q2@in.boost.talentfb.net">Copy</button></div>
+      <div class="setrow later" style="margin-top:12px"><div class="t"><strong style="color:var(--heading)">Connect Gmail or Outlook, read only</strong><small>Coming later</small></div><button class="btn btn-sm" disabled>Connect</button></div>`,
+    plan:`<h2>Plan and access</h2><div class="setrow"><div class="t"><strong style="color:var(--heading)">Accelerator</strong><small>BOOST is included in your plan. Access from 14 Oct 2026 to 14 Jan 2027.</small></div><span class="chip c-success">Active</span></div><div class="setrow"><div class="t"><strong style="color:var(--heading)">Payments</strong><small>Handled by TalentFB. Questions go to your coach.</small></div><button class="btn btn-sm" data-toast="Opens an email to your coach.">Contact your coach</button></div>`,
+    privacy:`<h2>Data and privacy</h2><p class="helper">Your data stays in Singapore. TalentFB's Data Protection Officer is Frederic Bonifassy.</p><div class="setrow"><div class="t"><strong style="color:var(--heading)">Export my data</strong><small>Facts, applications, messages and Gaya chats</small></div><button class="btn btn-sm" data-toast="Your export is being prepared. It arrives by email.">Export my data</button></div><div class="setrow"><div class="t"><strong style="color:var(--heading)">Request deletion of my data</strong><small>Everything is removed within 30 days</small></div><button class="btn btn-sm" style="border-color:var(--alert-strong);color:var(--alert-strong)" data-toast="A dialog asks you to type your email to confirm.">Request deletion</button></div>`,
+    account:`<h2>Account</h2><div class="setrow"><div class="t"><strong style="color:var(--heading)">Email</strong><small>alex.tan@example.com · sign in with an email link or Google</small></div></div><div class="setrow"><div class="t"><strong style="color:var(--heading)">Time zone</strong><small>Asia/Singapore · sets your 07:30 digest and 12:00 window</small></div><button class="btn btn-sm btn-ghost" data-toast="Change time zone.">Change</button></div>`
+  }[cur];
+  $('#view').innerHTML=`<div class="page-head"><h1>Settings</h1></div><div class="setgrid"><nav class="setnav" aria-label="Settings">${SETS.map(s=>`<button aria-current="${s[0]===cur}" onclick="location.hash='#/settings/${s[0]}'">${s[1]}</button>`).join('')}</nav><div class="card">${body}</div></div>`;
+}
+
+/* ================= Global search ================= */
+function bindSearch(){
+  const q=$('#gq'),res=$('#sresults');
+  const draw=()=>{const v=q.value.trim().toLowerCase(),sc=$('#scope').value;if(!v){res.classList.remove('open');return}
+    const jobs=(sc==='all'||sc==='jobs')?JOBS.filter(j=>(j.title+cname(j.co)).toLowerCase().includes(v)):[];
+    const cos=(sc==='all'||sc==='companies')?Object.entries(COMPANIES).filter(([k,c])=>c.name.toLowerCase().includes(v)):[];
+    const apps=(sc==='all'||sc==='apps')?APPS.filter(a=>(a.title+cname(a.co)).toLowerCase().includes(v)):[];
+    let h='';
+    if(jobs.length)h+=`<div class="grp">Jobs</div>`+jobs.map(j=>`<button data-sj="${j.id}">${tile(j.co)}<span>${esc(j.title)}<small>${cname(j.co)} · match ${j.score}</small></span></button>`).join('');
+    if(cos.length)h+=`<div class="grp">Companies</div>`+cos.map(([k,c])=>`<button data-sc="${k}">${tile(k)}<span>${c.name}<small>${c.tier?'Target, Tier '+c.tier:'Open in Outreach'}</small></span></button>`).join('');
+    if(apps.length)h+=`<div class="grp">Your applications</div>`+apps.map(a=>`<button data-sa="${a.id}">${tile(a.co)}<span>${esc(a.title)}<small>${cname(a.co)} · ${STATUS[a.status][0]}</small></span></button>`).join('');
+    if(!h)h=`<button data-look="${esc(q.value)}"><span class="tile" style="background:var(--line-strong)">?</span><span>Look up ${esc(q.value)}<small>Uses 1 of your company lookups in Outreach</small></span></button>`;
+    res.innerHTML=h;res.classList.add('open');
+    $$('[data-sj]',res).forEach(b=>b.onclick=()=>{res.classList.remove('open');jobDrawer(b.dataset.sj)});
+    $$('[data-sc]',res).forEach(b=>b.onclick=()=>{res.classList.remove('open');outCo=b.dataset.sc;location.hash='#/outreach';vOutreach();setContext()});
+    $$('[data-sa]',res).forEach(b=>b.onclick=()=>{res.classList.remove('open');appDrawer(b.dataset.sa)});
+    $$('[data-look]',res).forEach(b=>b.onclick=()=>{res.classList.remove('open');lookups++;toast(`Looked up ${b.dataset.look}. ${10-lookups} lookups left today.`)});
+  };
+  q.addEventListener('input',draw);$('#scope').onchange=draw;
+  q.addEventListener('keydown',e=>{if(e.key==='Escape'){q.value='';draw();q.blur()}if(e.key==='Enter'){const b=res.querySelector('button');b&&b.click()}});
+  document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='k'){e.preventDefault();q.focus()}});
+}
+
+/* ================= Gaya ================= */
+const threads=[[]];let thread=0,busy=false,gOpen=false;
+const CTX={dashboard:'Your day',jobs:'Browse jobs',apply:'Boost apply',tracker:'Job tracker',outreach:'Outreach',profile:'Your profile',research:'Research',settings:'Settings'};
+const STARTERS={
+  dashboard:['What should I do first today?','Why is Kestrel Health always my call?','Summarise my week'],
+  jobs:['Why is Northwind my top match?','Jobs look off. Hide roles below Director.','Find roles like my best match'],
+  apply:['What would Boost apply to for me tomorrow?','When does Hybrid unlock?','Is my CV ready for more volume?'],
+  tracker:['Help me prepare for the Kestrel interview','Which applications need a follow up?','Draft my reply to Orbit Commerce'],
+  outreach:['Who should I approach first here?','Draft my note to the recruiter','What problem could I solve for them?'],
+  profile:['Which facts are still to check?','How do I get my CV above 95?','Is my positioning clear enough?'],
+  research:['Which article should I read first?','How does this apply to my search?','Turn this into one action for today'],
+  settings:['What does Review mode mean?','How do lanes work?','What can my coach see?']
+};
+function setContext(){
+  const label=route.tab==='outreach'&&outCo?COMPANIES[outCo].name:CTX[route.tab];
+  $('#gContext').innerHTML=`<span class="chip c-violet">Looking at: ${esc(label)}</span>`;
+  const st=$('#starters');st.innerHTML=threads[thread].length?'':STARTERS[route.tab].map(t=>`<button>${esc(t)}</button>`).join('');
+  $$('button',st).forEach(b=>b.onclick=()=>gayaSend(b.textContent));
+}
+function renderThread(){
+  $('#gBody').innerHTML=`<div class="msg bot"><p>Hi ${ME.first}. I know your approved facts, your targets and where you are in your search. Ask me about a job, a company, a message or your next step.</p></div>`;
+  threads[thread].forEach(m=>addMsg(m,false));setContext();
+}
+function addMsg(m,push=true){if(push)threads[thread].push(m);const d=document.createElement('div');d.className='msg '+m.r;if(m.r==='me')d.textContent=m.t;else d.innerHTML=m.h;$('#gBody').appendChild(d);
+  $$('[data-ask]',d).forEach(b=>b.onclick=()=>gayaSend(b.textContent));
+  $$('[data-copy]',d).forEach(b=>b.onclick=()=>copy(b.dataset.copy));
+  $('#gBody').scrollTop=1e6;$('#starters').innerHTML='';}
+function reply(q){
+  const l=q.toLowerCase();
+  if(/send it|send for me|apply for me on linkedin|message them for me/.test(l))return `<p>I cannot send anything for you, and BOOST never acts on LinkedIn. Copy the draft, send it from your own account, then tap "I sent it" so I can line up your follow up.</p>`;
+  if(/first today|next step|do first/.test(l))return `<p>Three things, in this order:</p><ol><li>Answer the notice period question on Northwind's Director, Risk Products. It cannot go out without it.</li><li>Decide on Kestrel Health. It is a Tier 1 target, so it is always your call.</li><li>Send your day 4 follow up to Mei Lin Koh.</li></ol><div class="opts"><button class="opt" data-ask>Draft my follow up to Mei Lin</button></div>`;
+  if(/follow up|reply to|draft/.test(l)){const t='Hi Mei Lin, a quick follow up on my note. I put together a one page view on merchant onboarding for Northwind. Happy to send it if useful.';return `<p>Here is a draft. It uses only your approved facts.</p><div class="draft"><div class="eyebrow">Follow up, day 4</div><div class="txt">${t}</div><div class="row"><span class="num" style="font-size:13px;color:var(--muted);flex:1">${t.length} of 200</span><button class="opt" data-copy="${esc(t)}">Copy</button></div></div>`}
+  if(/hide|look off|below director|mandarin/.test(l))return `<p>Here is how I read that:</p><ul><li>Hide roles below Director</li><li>Hide roles that require Mandarin</li></ul><p>Save these as rules on your Product leadership lane? They apply from tomorrow's run.</p><div class="opts"><button class="opt" data-ask>Yes, save these rules</button><button class="opt" data-ask>Not now</button></div>`;
+  if(/save these rules/.test(l))return `<p>Saved to your Product leadership lane. They apply from tomorrow's run.</p>`;
+  if(/hybrid|unlock/.test(l))return `<p>Hybrid unlocks after 10 clean applications. You have 7. Clean means approved without changes and checked against your facts. Then your coach confirms it in your weekly call.</p>`;
+  if(/apply to for me|tomorrow/.test(l))return `<p>Based on your lanes and today's feed, tomorrow I would prepare 3 roles: Orbit Commerce VP Product (84), Harbour Digital Senior Director, Payments Product (79, wide net, needs your approval) and Aurora Logistics Head of Product (76, below your Strong minimum, so it stays out). Nothing goes out without your approval in Review mode.</p>`;
+  if(/top match|why is northwind/.test(l))return `<p>Northwind scores 91, Excellent:</p><ol><li>You scaled a merchant payments platform across 6 markets. The role asks for exactly that.</li><li>Real time payments is a must have, and it is in your approved facts.</li><li>It is a Tier 2 target company.</li></ol><p>One gap: Mandarin is listed as a plus, not a must.</p>`;
+  if(/kestrel|interview|prepare/.test(l))return `<p>For your Kestrel Health call on 20 Oct, from what is public, they are merging three clinic apps into one (Investor update, 30 Sep 2026). Prepare:</p><ol><li>A 2 minute story on your platform migration at Northstar Bank.</li><li>Two questions on how they will measure the new app.</li><li>Your Value Project idea: one patient app, one onboarding journey.</li></ol><div class="opts"><button class="opt" data-ask>Run a mock interview with me</button></div>`;
+  if(/approach first|who should/.test(l))return `<p>In this order: the hiring manager who owns the problem, then the recruiter the same day, then a referrer after one real exchange. I suggest titles and search words, never names. You find the people and paste them in.</p>`;
+  if(/cv|95|facts/.test(l))return `<p>Your CV scores 92. The three fixes that lift it most: LinkedIn link at the top, a 6 line summary, and one result on your Northstar Bank role. Two facts are still to check in My Story.</p><div class="opts"><button class="opt" data-ask>Show me the facts to check</button></div>`;
+  if(/coach see/.test(l))return `<p>Your coach sees your applications, approvals and progress, and can read your Gaya chats. Your sensitive facts are visible only to you and your coach and never used to score jobs.</p>`;
+  return `<p>Happy to help. I can explain a score, draft a message, prepare you for an interview or tell you what to do next.</p><div class="opts"><button class="opt" data-ask>What should I do first today?</button></div>`;
+}
+function gayaSend(t){t=(t||'').trim();if(!t||busy)return;if(!gOpen)openGaya(true);addMsg({r:'me',t});busy=true;$('#gSend').disabled=true;
+  const d=document.createElement('div');d.className='msg bot';d.innerHTML='<span class="typing" aria-label="Gaya is writing"><i></i><i></i><i></i></span>';$('#gBody').appendChild(d);$('#gBody').scrollTop=1e6;
+  setTimeout(()=>{d.remove();addMsg({r:'bot',h:reply(t)});busy=false;$('#gSend').disabled=!$('#gInput').value.trim()},850)}
+function openGaya(o){gOpen=o;document.body.classList.toggle('app-gaya',o);$('#appBody').classList.toggle('app-gaya',o);$('#gayaToggle').setAttribute('aria-pressed',o);store('boost.gaya',o?'1':'0');if(o){renderThread();setTimeout(()=>$('#gInput').focus(),50)}}
+
+/* ================= Wiring ================= */
+$('#gayaToggle').onclick=()=>openGaya(!gOpen);
+$('#closeGaya').onclick=()=>openGaya(false);
+$('#newChat').onclick=()=>{threads.push([]);thread=threads.length-1;renderThread()};
+const gi=$('#gInput');
+gi.addEventListener('input',()=>{$('#gSend').disabled=!gi.value.trim()||busy;gi.style.height='auto';gi.style.height=Math.min(gi.scrollHeight,120)+'px'});
+gi.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('#composer').requestSubmit()}});
+$('#composer').onsubmit=e=>{e.preventDefault();const v=gi.value;gi.value='';gi.style.height='auto';gayaSend(v)};
+$('#avatarBtn').onclick=e=>{e.stopPropagation();const m=$('#acctMenu');m.classList.toggle('open');$('#avatarBtn').setAttribute('aria-expanded',m.classList.contains('open'))};
+document.addEventListener('click',e=>{
+  const t=e.target.closest('[data-toast]');if(t){toast(t.dataset.toast)}
+  const c=e.target.closest('[data-copy]');if(c&&!c.closest('.msg'))copy(c.dataset.copy);
+  const g=e.target.closest('[data-ask-gaya]');if(g)gayaSend(g.dataset.askGaya);
+  if(!e.target.closest('#acctMenu')&&!e.target.closest('#avatarBtn'))$('#acctMenu').classList.remove('open');
+  if(!e.target.closest('.gsearch'))$('#sresults').classList.remove('open');
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if($('#drawer').classList.contains('open'))closeDrawer();else if(gOpen&&innerWidth<1024)openGaya(false)}});
+bindSearch();
+go();
+const pref=store('boost.gaya');
+if((pref===null?true:pref==='1')&&innerWidth>=1024)openGaya(true);
+</script>
+</body>
+</html>
