@@ -40,7 +40,7 @@ How to read this file:
 **Decided by Fred on 14 Oct 2026 (05 D6, D41):**
 
 - D6: the Hold and Back to Review links in emails work without signing in, through single use signed links that expire. Approve always needs a sign in.
-- D41: Value Project decks are built as Google Slides in the company's brand, through the Google Slides API on TalentFB's Google Workspace. The client gets a PDF and can open the deck in Google Slides to edit it. Gamma and pptxgenjs are not used.
+- D41: Value Project decks are built as Google Slides in the company's brand, through the Google Slides API on TalentFB's Google Workspace. No PowerPoint. Each deck is stored in the client's Drive copy: a folder per client on TalentFB's Drive, shared with the client, as with the tracker sheet (L16). The client can open and edit the deck in Google Slides. Gamma and pptxgenjs are not used.
 
 **Recommended and followed until Fred decides:** D40 (live check sources), D42 (company research through the Claude API web search tool).
 
@@ -49,7 +49,7 @@ How to read this file:
 **Open items** (also marked where they occur):
 
 - Open (D40): whether a role open today on the company's own careers page only counts as verified with fewer than 3 sources [Rec: keep the 3 source minimum; show these to Fred as "Company site only"].
-- Open (D41): whether a PowerPoint export is offered as well as the PDF and the Google Slides link, and where the deck is stored (Drive copy rule, 05). This file shows the PDF and the Google Slides link [Rec].
+- Open (D41): whether the client also gets a PDF download from BOOST. This file shows the PDF download [Rec: yes, for sharing].
 - Open (PRD gap 3): a job the client pastes stays hidden until `live-check` verifies it; may the client still ask for a pack?
 - Open (04 F1): consent captured at purchase in GoHighLevel or in BOOST [Rec: first panel of `/profile/my-story/import` when clients.consent_at is empty].
 - Open (L30): packs prepared each day before the first 10 clean applications [Rec: up to 5]; whether the 10 must be consecutive.
@@ -297,12 +297,12 @@ Format: On [screen], user [action] -> [what happens] -> lands on [screen]. Lines
 2. User taps "Show me new ideas" -> the current ideas become `dismissed`; P13 proposes new ones from the same research -> stays.
 3. User taps "Choose this idea" -> the idea becomes `chosen`; `brand-extract` (if not done) stores companies.brand_json and logo_path -> the brand panel opens: colour swatches, the font, the logo and "The logo is used only in this deck, addressed to [company]."
 4. In the brand panel, user taps "Adjust colours" and changes a swatch -> kept for this deck only -> stays. If the company font is not available: "[Font] is not available, so your deck uses [closest font], the closest match."
-5. User taps "Build my deck" (3 a week, L32) -> `value-project`: P9 writes the deck from the chosen idea in the R8 structure; P4 checks every client claim against facts and every company statement against a source; BOOST builds the deck as a Google Slides presentation in the company's brand, through the Google Slides API, and exports a PDF (D41); value_projects row with idea_id, brand_snapshot_json, renderer `google_slides`, slides_file_id, pdf_path -> stays, with "BOOST is building your deck. This takes a few minutes."
+5. User taps "Build my deck" (3 a week, L32) -> `value-project`: P9 writes the deck from the chosen idea in the R8 structure; P4 checks every client claim against facts and every company statement against a source; BOOST builds the deck as a Google Slides presentation in the company's brand, through the Google Slides API, in the client's folder in TalentFB's Drive, shared with the client (D41); value_projects row with idea_id, brand_snapshot_json, renderer `google_slides`, slides_file_id, drive_folder_id -> stays, with "BOOST is building your deck. This takes a few minutes."
 6. P4 fails -> `needs_review` on `/coach/queue`; the client sees "Being checked".
 7. Ready -> "Your Value Project is ready" email -> user opens the deck -> slide preview, each company statement with its source and date (G14), each claim about the client linked to its fact.
 8. User taps "Approve my Value Project" -> `approved`, linked into that company's approach plan -> stays. "Ask for changes" with a note -> a new version. "I do not need this one" -> `withdrawn`.
-9. After approval, user taps "Download my PDF" -> a signed link from the decks bucket -> the file downloads [Rec: downloads open after approval].
-10. After approval, user taps "Open in Google Slides" -> the deck opens in a new tab in the client's own Google account, from the copy shared with them (D41). Edits made there stay in Google Slides and are not sent back to BOOST [Rec].
+9. After approval, user taps "Open in Google Slides" -> the deck opens in a new tab from the client's folder, shared with them (D41). Edits made there stay in Google Slides and are not sent back to BOOST [Rec].
+10. After approval, user taps "Download my PDF" -> a signed link to the PDF exported from the deck -> the file downloads [Rec: yes, for sharing; open to confirm].
 
 **J20. Export and deletion**
 1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` writes the R7 Google Sheet and shares it with the client -> stays, with "Open my tracker".
@@ -440,8 +440,8 @@ Every action's error message says whether anything was sent. Default error: "Som
 | "Approve my Value Project" | "Approved. It is linked to your approach plan." | Default |
 | "Ask for changes" | "A new version is being built." | "Tell BOOST what to change." |
 | "I do not need this one" | "Removed." | Default |
-| "Download my PDF" | File downloads | "This file could not be downloaded. Please try again." |
 | "Open in Google Slides" (D41) | Deck opens in a new tab | "This deck is not shared with your Google account yet. Ask BOOST to share it again." |
+| "Download my PDF" | File downloads | "This file could not be downloaded. Please try again." |
 
 **Mode and lanes.** Empty state: "Your lanes are created from your primary and secondary roles."
 
@@ -624,7 +624,7 @@ flowchart TD
   BX --> AD["Brand panel: adjust colours; font fallback notice"]
   AD --> LIM{"Fewer than 3 decks this week?"}
   LIM -- No --> WL["Deck limit panel"]
-  LIM -- Yes --> BD["value-project: P9 deck in the R8 structure, Google Slides and PDF"]
+  LIM -- Yes --> BD["value-project: P9 deck in the R8 structure, Google Slides in the client's Drive folder"]
   BD --> P2{"P4 check passed?"}
   P2 -- No --> Q2["needs_review in the coach queue"]
   Q2 -- "Release to client" --> RD
@@ -633,8 +633,8 @@ flowchart TD
   REV -- "Ask for changes" --> BD
   REV -- "I do not need this one" --> WD["withdrawn"]
   REV -- "Approve my Value Project" --> OK["approved: linked to the approach plan"]
-  OK --> DL["Download my PDF"]
   OK --> GS["Open in Google Slides, D41"]
+  OK --> DL["Download my PDF"]
 ```
 
 **Access and billing states**
