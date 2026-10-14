@@ -40,7 +40,7 @@ How to read this file:
 **Decided by Fred on 14 Oct 2026 (05 D6, D41):**
 
 - D6: the Hold and Back to Review links in emails work without signing in, through single use signed links that expire. Approve always needs a sign in.
-- D41: Value Project decks are built as Google Slides in the company's brand, through the Google Slides API on TalentFB's Google Workspace. No PowerPoint. Each deck is stored in the client's Drive copy: a folder per client on TalentFB's Drive, shared with the client, as with the tracker sheet (L16). The client can open and edit the deck in Google Slides. Gamma and pptxgenjs are not used.
+- D41: Value Project decks are built as Google Slides in the company's brand, through the Google Slides API on TalentFB's Google Workspace. No PowerPoint. Gamma and pptxgenjs are not used. Decks are stored in one TalentFB Shared Drive, in a folder per client, shared with that client only.
 
 **Recommended and followed until Fred decides:** D40 (live check sources), D42 (company research through the Claude API web search tool).
 
@@ -50,7 +50,7 @@ How to read this file:
 
 - Open (D40): whether a role open today on the company's own careers page only counts as verified with fewer than 3 sources [Rec: keep the 3 source minimum; show these to Fred as "Company site only"].
 - D41 (PDF): the client also gets a PDF download from the app, decided by Fred on 14 Oct 2026.
-- Open (D41, Drive layout): the folder structure in TalentFB's Drive at scale and how clients are given access. Quotas are not the constraint; sharing, deletion and Shared Drive setup are (05 D41).
+- D41 (Drive layout, decided by Fred on 14 Oct 2026): one TalentFB Shared Drive, one folder per client, shared with that client only (restricted sharing). The PDF exported from the approved deck is the approved record. Conditions before the build: a Workspace plan that supports Shared Drives (05 open item 9); clients without a Google account get the PDF only; deletion removes the folder and its trash; access is removed when access ends (L42).
 - Open (PRD gap 3): a job the client pastes stays hidden until `live-check` verifies it; may the client still ask for a pack?
 - Open (04 F1): consent captured at purchase in GoHighLevel or in BOOST [Rec: first panel of `/profile/my-story/import` when clients.consent_at is empty].
 - Open (L30): packs prepared each day before the first 10 clean applications [Rec: up to 5]; whether the 10 must be consecutive.
