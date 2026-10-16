@@ -602,7 +602,7 @@ let trackTab='pipeline', inboxSel=0, inboxCat='All';
 function vTracker(){
   $('#view').innerHTML=`
   <div class="page-head"><h1>Job tracker</h1><div class="sp"></div>
-    <button class="btn btn-sm" data-toast="Your tracker is exported to your Google Sheet.">Export my tracker</button>
+    <button class="btn btn-sm" data-toast="Your tracker is ready to download.">Export my tracker</button>
     <button class="btn btn-sm btn-primary" id="addApp">Add an application</button></div>
   <div class="subtabs" role="tablist"><button role="tab" aria-selected="${trackTab==='pipeline'}" data-tt="pipeline">Pipeline</button><button role="tab" aria-selected="${trackTab==='inbox'}" data-tt="inbox">Employer emails<span class="n">${INBOX.length}</span></button></div>
   <div id="trackBody"></div>`;

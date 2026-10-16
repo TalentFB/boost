@@ -2,9 +2,9 @@
 
 Answers: where each person goes in BOOST, and what happens after every action.
 
-Last updated: 14 Oct 2026
+Last updated: 16 Oct 2026 (L54: Value Project decks built with PDFMonkey; L55: the tracker is a download)
 
-Sources: 05 Decision Log (L9, L23, L24, L25, L27, L30, L32, L34 to L50; D6, D20, D34, D40 to D52), CLAUDE.md, addendum 3 (docs/spec/networking-and-gaya.md), addendum 4 (docs/spec/app-shell-and-navigation.md), 06 BOOST Blueprint (screens, daily loop), 04 PRD sections 6 (G1 to G14), 7 (flows) and 8 (F1 to F56), docs/prd.md (6.4 to 6.17), docs/backend-schema.md (function names), docs/spec/worker-interface.md.
+Sources: 05 Decision Log (L9, L23, L24, L25, L27, L30, L32, L34 to L50, L54, L55; D6, D20, D34, D40 to D52), CLAUDE.md, addendum 3 (docs/spec/networking-and-gaya.md), addendum 4 (docs/spec/app-shell-and-navigation.md), 06 BOOST Blueprint (screens, daily loop), 04 PRD sections 6 (G1 to G14), 7 (flows) and 8 (F1 to F56), docs/prd.md (6.4 to 6.17), docs/backend-schema.md (function names), docs/spec/worker-interface.md.
 
 How to read this file:
 
@@ -37,10 +37,10 @@ How to read this file:
 - D51: before step 3, the client sees Dashboard, Profile and Research; the other four tabs appear together when step 3 unlocks.
 - D52: option A. The general shell pattern with BOOST's own tab names, order, design and copy. No copying of Tsenta's interface (06 Risks). Lawyer confirmation still needed before step 1.3.
 
-**Decided by Fred on 14 Oct 2026 (05 D6) and 15 Oct 2026 (05 L53):**
+**Decided by Fred on 14 Oct 2026 (05 D6) and 16 Oct 2026 (05 L54):**
 
 - D6: the Hold and Back to Review links in emails work without signing in, through single use signed links that expire. Approve always needs a sign in.
-- L53 (replaces L52, decided by Fred on 15 Oct 2026): Value Project decks are built in Google Slides from the TalentFB Value Project template, in the company's brand. Each client's deck sits in their folder on the TalentFB Shared Drive (D41 layout, accepted 14 Oct 2026). The client can view the deck but not edit it [Rec]. The approved PDF is exported and stored in the client's decks bucket in Supabase, Singapore, as the approved record and the download. Changes after approval are a new version. No PowerPoint, no Gamma, no pptxgenjs.
+- L54 (replaces L53, decided by Fred on 16 Oct 2026): Value Project decks are built with PDFMonkey. BOOST fills the PDFMonkey Value Project template from the P9 cards (`deck_json`) and the company's brand: colours, font (or the closest available font, with a note) and the logo only for that company. The PDF is stored in the client's decks bucket in Supabase, Singapore, as the approved record and the download; once stored, its PDFMonkey document is deleted (store then delete, D54). Changes after approval are a new version and a new PDF. No Google Slides, no Shared Drive, no PowerPoint, no Gamma, no pptxgenjs.
 
 **Recommended and followed until Fred decides:** D40 (live check sources), D42 (company research through the Claude API web search tool).
 
@@ -49,7 +49,7 @@ How to read this file:
 **Open items** (also marked where they occur):
 
 - Open (D40): whether a role open today on the company's own careers page only counts as verified with fewer than 3 sources [Rec: keep the 3 source minimum; show these to Fred as "Company site only"].
-- Open (L53): Shared Drive limits and item counts (support.google.com/a/answer/7338880), and whether deck content in Google Workspace needs a data region note in the privacy notice. Deletion removes the Supabase objects, the Slides files and their folder. Access ends with the client's access (L42); after that the client keeps the approved PDF download only [Rec].
+- Open (L54): PDFMonkey's EU hosting and US sub-processors for the privacy notice (05 open item 11), and whether the Free plan covers deck renders (05 open item 10). Deletion removes the Supabase objects and any PDFMonkey document still held. Access ends with the client's access (L42); after that the client keeps the approved PDF download only [Rec].
 - Open (PRD gap 3): a job the client pastes stays hidden until `live-check` verifies it; may the client still ask for a pack?
 - Open (04 F1): consent captured at purchase in GoHighLevel or in BOOST [Rec: first panel of `/profile/my-story/import` when clients.consent_at is empty].
 - Open (L30): packs prepared each day before the first 10 clean applications [Rec: up to 5]; whether the 10 must be consecutive.
@@ -105,7 +105,7 @@ Public routes: `/login`, `/auth/callback`, `/paused`. Coach routes: `/coach/*`, 
 | `/settings/lanes` | Lanes | One lane per target role | 1 |
 | `/settings/lanes/[laneId]` | Lane | CV variation, must haves and nice to haves (L48 a), filters, keywords, standing instructions, minimum match | 1 (must haves 2, instructions 3) |
 | `/settings/gaya` | What Gaya knows | Preferences confirmed in chats, each removable | 2 |
-| `/settings/data` | Data and privacy | Export my data, export of the tracker (R7 sheet), "Ask to delete my data" with the DPO line | 1 (export 2) |
+| `/settings/data` | Data and privacy | Export my data, export of the tracker (R7 structure, .xlsx download, L55), "Ask to delete my data" with the DPO line | 1 (export 2) |
 | `/plans` | Monthly plans | Ended clients [Rec]: Starter, Pro, Max (L38, L39); "Choose Pro" opens GoHighLevel checkout | 5 (February to March 2027) |
 | `/coach` | All clients | Every client's state, counts, alerts and hidden job counts (L47); "Invite a client" | 1 |
 | `/coach/clients/[clientId]` | Client view | The client's screens read only, plus coach actions | 1 |
@@ -297,14 +297,14 @@ Format: On [screen], user [action] -> [what happens] -> lands on [screen]. Lines
 2. User taps "Show me new ideas" -> the current ideas become `dismissed`; P13 proposes new ones from the same research -> stays.
 3. User taps "Choose this idea" -> the idea becomes `chosen`; `brand-extract` (if not done) stores companies.brand_json and logo_path -> the brand panel opens: colour swatches, the font, the logo and "The logo is used only in this deck, addressed to [company]."
 4. In the brand panel, user taps "Adjust colours" and changes a swatch -> kept for this deck only -> stays. If the company font is not available: "[Font] is not available, so your deck uses [closest font], the closest match."
-5. User taps "Build my deck" (3 a week, L32) -> `value-project`: P9 writes the deck from the chosen idea in the R8 structure; P4 checks every client claim against facts and every company statement against a source; BOOST builds the deck from the Google Slides Value Project template in the company's brand, in the client's folder on the Shared Drive (L53); value_projects row with idea_id, brand_snapshot_json, deck_json, renderer `google_slides`, slides_file_id -> stays, with "BOOST is building your deck. This takes a few minutes."
+5. User taps "Build my deck" (3 a week, L32) -> `value-project`: P9 writes the deck from the chosen idea in the R8 structure; P4 checks every client claim against facts and every company statement against a source; BOOST fills the PDFMonkey Value Project template in the company's brand and stores the PDF in the decks bucket (L54); value_projects row with idea_id, brand_snapshot_json, deck_json, deck_version, renderer `pdfmonkey`, pdfmonkey_document_id (cleared once the PDF is stored) -> stays, with "BOOST is building your deck. This takes a few minutes."
 6. P4 fails -> `needs_review` on `/coach/queue`; the client sees "Being checked".
 7. Ready -> "Your Value Project is ready" email -> user opens the deck -> PDF preview, each company statement with its source and date (G14), each claim about the client linked to its fact.
 8. User taps "Approve my Value Project" -> `approved`, linked into that company's approach plan -> stays. "Ask for changes" with a note -> a new version. "I do not need this one" -> `withdrawn`.
-9. After approval, BOOST exports the Slides deck to PDF and stores it in the decks bucket as the approved record. User taps "Download my PDF" -> a signed link to that PDF -> the file downloads (L53). The client does not get an editable file; changes come as a new version through "Ask for changes".
+9. The approved PDF in the decks bucket is the record. User taps "Download my PDF" -> a signed link to that PDF -> the file downloads (L54). The client does not get an editable file; changes come as a new version through "Ask for changes".
 
 **J20. Export and deletion**
-1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` writes the R7 Google Sheet and shares it with the client -> stays, with "Open my tracker".
+1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` builds the R7 structure as an .xlsx file in the exports bucket -> stays, with "Download my tracker" (a signed link that expires, L55).
 2. On `/settings/data`, user taps "Ask to delete my data" and types DELETE -> clients.deletion_requested_at set, Fred alerted, confirmation email -> stays.
 3. On `/coach/clients/[clientId]`, Fred taps "Run deletion" -> `client-deletion` removes every row and file (decks, value_project_ideas, gaya_threads, gaya_messages, company_lookups and network_connections included) and writes an audit stub without personal data; GoHighLevel sends the final email -> lands on `/coach`.
 
@@ -622,7 +622,7 @@ flowchart TD
   BX --> AD["Brand panel: adjust colours; font fallback notice"]
   AD --> LIM{"Fewer than 3 decks this week?"}
   LIM -- No --> WL["Deck limit panel"]
-  LIM -- Yes --> BD["value-project: P9 deck in the R8 structure, Google Slides in the client folder, approved PDF to the decks bucket"]
+  LIM -- Yes --> BD["value-project: P9 deck in the R8 structure, PDFMonkey template in the company brand, PDF to the decks bucket"]
   BD --> P2{"P4 check passed?"}
   P2 -- No --> Q2["needs_review in the coach queue"]
   Q2 -- "Release to client" --> RD
