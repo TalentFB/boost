@@ -2,9 +2,9 @@
 
 Answers: where each person goes in BOOST, and what happens after every action.
 
-Last updated: 16 Oct 2026 (L54: Value Project decks built with PDFMonkey)
+Last updated: 16 Oct 2026 (L54: Value Project decks built with PDFMonkey; L55: the tracker is a download)
 
-Sources: 05 Decision Log (L9, L23, L24, L25, L27, L30, L32, L34 to L50, L54; D6, D20, D34, D40 to D52), CLAUDE.md, addendum 3 (docs/spec/networking-and-gaya.md), addendum 4 (docs/spec/app-shell-and-navigation.md), 06 BOOST Blueprint (screens, daily loop), 04 PRD sections 6 (G1 to G14), 7 (flows) and 8 (F1 to F56), docs/prd.md (6.4 to 6.17), docs/backend-schema.md (function names), docs/spec/worker-interface.md.
+Sources: 05 Decision Log (L9, L23, L24, L25, L27, L30, L32, L34 to L50, L54, L55; D6, D20, D34, D40 to D52), CLAUDE.md, addendum 3 (docs/spec/networking-and-gaya.md), addendum 4 (docs/spec/app-shell-and-navigation.md), 06 BOOST Blueprint (screens, daily loop), 04 PRD sections 6 (G1 to G14), 7 (flows) and 8 (F1 to F56), docs/prd.md (6.4 to 6.17), docs/backend-schema.md (function names), docs/spec/worker-interface.md.
 
 How to read this file:
 
@@ -105,7 +105,7 @@ Public routes: `/login`, `/auth/callback`, `/paused`. Coach routes: `/coach/*`, 
 | `/settings/lanes` | Lanes | One lane per target role | 1 |
 | `/settings/lanes/[laneId]` | Lane | CV variation, must haves and nice to haves (L48 a), filters, keywords, standing instructions, minimum match | 1 (must haves 2, instructions 3) |
 | `/settings/gaya` | What Gaya knows | Preferences confirmed in chats, each removable | 2 |
-| `/settings/data` | Data and privacy | Export my data, export of the tracker (R7 sheet), "Ask to delete my data" with the DPO line | 1 (export 2) |
+| `/settings/data` | Data and privacy | Export my data, export of the tracker (R7 structure, .xlsx download, L55), "Ask to delete my data" with the DPO line | 1 (export 2) |
 | `/plans` | Monthly plans | Ended clients [Rec]: Starter, Pro, Max (L38, L39); "Choose Pro" opens GoHighLevel checkout | 5 (February to March 2027) |
 | `/coach` | All clients | Every client's state, counts, alerts and hidden job counts (L47); "Invite a client" | 1 |
 | `/coach/clients/[clientId]` | Client view | The client's screens read only, plus coach actions | 1 |
@@ -304,7 +304,7 @@ Format: On [screen], user [action] -> [what happens] -> lands on [screen]. Lines
 9. The approved PDF in the decks bucket is the record. User taps "Download my PDF" -> a signed link to that PDF -> the file downloads (L54). The client does not get an editable file; changes come as a new version through "Ask for changes".
 
 **J20. Export and deletion**
-1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` writes the R7 Google Sheet and shares it with the client -> stays, with "Open my tracker".
+1. On `/settings/data`, user taps "Export my tracker" -> `tracker-export` builds the R7 structure as an .xlsx file in the exports bucket -> stays, with "Download my tracker" (a signed link that expires, L55).
 2. On `/settings/data`, user taps "Ask to delete my data" and types DELETE -> clients.deletion_requested_at set, Fred alerted, confirmation email -> stays.
 3. On `/coach/clients/[clientId]`, Fred taps "Run deletion" -> `client-deletion` removes every row and file (decks, value_project_ideas, gaya_threads, gaya_messages, company_lookups and network_connections included) and writes an audit stub without personal data; GoHighLevel sends the final email -> lands on `/coach`.
 
